@@ -18,19 +18,17 @@ void tcp_client_task(void *pvParameters)
 	//TODO
 	//check espconn_disconnect and connect
 	// check keep alive
-	uint8_t action;
+	uint8_t action[2];
+	event_to_send_t rcb_data;
 	user_esp_platform_check_ip();
 	TCP_queue     = xQueueCreate(1, sizeof(uint8_t));
-	TCP_semaphore = xSemaphoreCreateMutex();
 	while(1)
 	{
-		if( xSemaphoreTake( TCP_queue, ( TickType_t ) 100 ) == pdTRUE)
-		{
-			if(xQueueReceive(TCP_queue, &(action), ( TickType_t ) 100 ) == pdPASS)
-			{ 
-				action += 0x30;//for converting to char meanable
-				user_send_data(&action,1);
-			}
+		if(xQueueReceive(TCP_queue, &(rcb_data), ( TickType_t ) 100 ) == pdPASS)
+		{ 
+			action[0]=rcb_data+0x30;
+			//action[0] += 0x30;//for converting to char meanable
+			espconn_send(global_write, action, 2);
 		}
 	}
 }
@@ -38,7 +36,6 @@ void tcp_client_task(void *pvParameters)
 
 static void user_send_data(uint8_t *data,uint8_t pack_zise)
 {
-	
 	if(conection_enable == true)
 	{
 		espconn_send(global_write, data, 1);
@@ -57,7 +54,7 @@ static void user_tcp_sent_cb(void *arg)
 {
 	//data sent successfully
 
-	printf("Sent callback: data sent successfully.\r\n");
+	printf("Sent cb: data sent success.\r\n");
 }
 
 static void user_tcp_discon_cb(void *arg)
@@ -79,7 +76,7 @@ static void user_tcp_connect_cb(void *arg)
 	espconn_regist_recvcb(pesp, user_tcp_recv_cb);
 	espconn_regist_sentcb(pesp, user_tcp_sent_cb);
 	espconn_regist_disconcb(pesp, user_tcp_discon_cb);
-
+	espconn_send(global_write, "38", 1);
 }
 static void user_tcp_recon_cb(void *arg, sint8 err)
 {
@@ -98,7 +95,7 @@ void user_esp_platform_check_ip(void)
 	user_tcp_conn.state = ESPCONN_NONE;
 
 	//const char esp_tcp_server_ip[4] = {192, 168, 5, 1}; // remote IP of TCP server
-	const char esp_tcp_server_ip[4] = {192, 168, 0, 105}; // remote IP of TCP server
+	const char esp_tcp_server_ip[4] = {10, 0, 0, 4}; // remote IP of TCP server
 	memcpy(user_tcp_conn.proto.tcp->remote_ip, esp_tcp_server_ip, 4);
 
 	user_tcp_conn.proto.tcp->remote_port = 1023;  // remote port

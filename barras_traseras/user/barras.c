@@ -118,7 +118,6 @@ void obs_check_function (void)
 			printf("obs sec: %d \n",barras_data.obs);
 			state = OBSTRUCCION;
 			xQueueOverwrite(TCP_queue,&state);
-			Release(TCP_semaphore);
 		}
 		Obst_Timer();
 	}
@@ -131,7 +130,6 @@ void obs_check_function (void)
 			printf("bajada: %d \n",barras_data.bajadas);
 			state = BAJADA;
 			xQueueOverwrite(TCP_queue,&state);
-			Release(TCP_semaphore);
 		}
 		if(subir_flag == true)
 		{
@@ -139,7 +137,6 @@ void obs_check_function (void)
 			printf("subida: %d \n",barras_data.subidas);
 			state = SUBIDA;
 			xQueueOverwrite(TCP_queue,&state);
-			Release(TCP_semaphore);
 		}
 		obstruccion   = 0;
 		Clear_bar_flags();

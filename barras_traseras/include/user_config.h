@@ -29,7 +29,7 @@
 #define SSID "central_comunication"
 #define PASS "12345678"
 #else
-    //#define HOUSE
+    #define HOUSE
     #ifdef HOUSE
 	    #define SSID "HOME-5818"
 	    #define PASS "C900797AAD34D8AB"
