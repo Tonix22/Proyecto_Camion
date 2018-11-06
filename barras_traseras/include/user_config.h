@@ -24,7 +24,19 @@
 
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
+//#define MY_SERVER
+#ifdef MY_SERVER
 #define SSID "central_comunication"
 #define PASS "12345678"
+#else
+    //#define HOUSE
+    #ifdef HOUSE
+	    #define SSID "HOME-5818"
+	    #define PASS "C900797AAD34D8AB"
+    #else
+	    #define SSID "AXTEL-XTREMO-4157"
+	    #define PASS "89615461"
+#endif
+#endif
 #endif
 

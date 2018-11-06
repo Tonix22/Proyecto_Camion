@@ -28,7 +28,7 @@
 #include "gpio_config.h"
 #include "network.h"
 #include "barras.h"
-
+extern void barras_traseras_task(void *pvParameters);
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -90,6 +90,6 @@ void user_init(void)
 	printf("Barras traseras\n");
 	GPIO_init();
     xTaskCreate(barras_traseras_task,"Barras traseras",1024,NULL,4,NULL);
-    vTaskDelay(100/portTICK_RATE_MS);
+    vTaskDelay(1000/portTICK_RATE_MS);
 	wifi_Init();
 }

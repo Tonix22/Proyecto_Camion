@@ -1,9 +1,10 @@
+#include "barras.h"
 #include "c_types.h"
 #include "esp_common.h"
 #include "user_config.h"
 #include "gpio_config.h"
 #include "freeRTOS_wrapper.h"
-#include "barras.h"
+
 
 #define ON 	1
 #define OFF 0
@@ -67,7 +68,7 @@ static void BAR_CHECK (gpio_action_t action)
 {
 	if(action == barra_izquierda)//S1
 	{
-		printf("S1\r\n");
+		//printf("S1\r\n");
 		if(bajar_flag == false && subir_flag == false)//nadie habia sido activado
 		{
 			//False_Timer();
@@ -83,7 +84,7 @@ static void BAR_CHECK (gpio_action_t action)
 
 	if(action == barra_derecha)//S2
 	{
-		printf("S2\r\n");
+		//printf("S2\r\n");
 		if(bajar_flag == false && subir_flag == false)//nadie habia sido activado
 		{
 			bajar_flag = true;
@@ -115,6 +116,7 @@ void obs_check_function (void)
 			barras_data.obs+=2;
 			obstruccion = 0;
 			printf("obs sec: %d \n",barras_data.obs);
+			state = OBSTRUCCION;
 			xQueueOverwrite(TCP_queue,&state);
 			Release(TCP_semaphore);
 		}
@@ -127,6 +129,7 @@ void obs_check_function (void)
 		{
 			barras_data.bajadas++;
 			printf("bajada: %d \n",barras_data.bajadas);
+			state = BAJADA;
 			xQueueOverwrite(TCP_queue,&state);
 			Release(TCP_semaphore);
 		}
@@ -134,6 +137,7 @@ void obs_check_function (void)
 		{
 			barras_data.subidas++;
 			printf("subida: %d \n",barras_data.subidas);
+			state = SUBIDA;
 			xQueueOverwrite(TCP_queue,&state);
 			Release(TCP_semaphore);
 		}

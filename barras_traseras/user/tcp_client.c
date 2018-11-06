@@ -97,8 +97,8 @@ void user_esp_platform_check_ip(void)
 	user_tcp_conn.type = ESPCONN_TCP;
 	user_tcp_conn.state = ESPCONN_NONE;
 
-	const char esp_tcp_server_ip[4] = {192, 168, 5, 1}; // remote IP of TCP server
-
+	//const char esp_tcp_server_ip[4] = {192, 168, 5, 1}; // remote IP of TCP server
+	const char esp_tcp_server_ip[4] = {192, 168, 0, 105}; // remote IP of TCP server
 	memcpy(user_tcp_conn.proto.tcp->remote_ip, esp_tcp_server_ip, 4);
 
 	user_tcp_conn.proto.tcp->remote_port = 1023;  // remote port
