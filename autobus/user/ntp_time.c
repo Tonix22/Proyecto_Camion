@@ -7,6 +7,7 @@
 #include "printer.h"
 #include "Tcp_mail.h"
 #include "data_base.h"
+#include "user_config.h"
 #include "uart.h"
 extern TaskHandle_t xData_Base;
 extern xQueueHandle xQueueUart;

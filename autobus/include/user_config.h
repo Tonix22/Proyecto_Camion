@@ -24,8 +24,8 @@
 
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
-
-#define HOUSE
+#define BUFFER_SIZE 15
+//#define HOUSE
 #ifdef HOUSE
 	#define SSID "HOME-5818"
 	#define PASS "C900797AAD34D8AB"
