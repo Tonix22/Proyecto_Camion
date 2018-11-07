@@ -5,6 +5,7 @@
 #include "tcp_server.h"
 #include "tcp_test.h"
 #include "data_base.h"
+#include "barras.h"
 
 #define DEMO_AP_SSID      "WT_TEST"
 #define DEMO_AP_PASSWORD "1234567abc"     

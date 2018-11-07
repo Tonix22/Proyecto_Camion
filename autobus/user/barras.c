@@ -18,7 +18,8 @@ extern SemaphoreHandle_t gpio_bar_semaphore;
 static bool subir_flag    = false;
 static bool bajar_flag    = false;
 static bool obs_flag      = false;
-static bool finish 		  = false;	
+static bool finish 		  = false;
+
 barras_t barras_data;
 uint8_t obstruccion;
 os_timer_t false_move;

@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "esp_common.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#include "freeRTOS_wrapper.h"
 #include "espconn.h"
 #include "printer.h"
 #include "barras.h"
