@@ -20,6 +20,7 @@ Pending stuff
   3. Integrate passanger number with subidas y bajadas, passanger number is equivalent to
   people inside the bus.
   4. Update de passanger number whit MQTT
+  
   5.-MQTT features
      a)Update an MQTT button to make a FOTA
      b)Make GPS Map enable
