@@ -8,14 +8,16 @@
 #include "barras.h"
 #include "data_base.h"
 #include "Tcp_mail.h"
-#define  ADD(name) total.##name=barras_data.##name+tcp_barr_rcv.##name
+
 uint8_t  M_SUBIDAS[]  = {"SUBIDAS:000\r\n\0"};//14
-uint8_t  M_BAJADAS[]  = {"BAJADAS:000\r\n\0"};
+uint8_t  M_BAJADAS[]  = {"BAJADAS:000\r\n\0"};//14
 uint8_t  M_NORMAL[]   = {"Normal:000\r\n\0"};//13
 uint8_t  M_TRANSVALE[]= {"Transvale:000\r\n\0"};//15
 uint8_t  M_MITAD[]    = {"Mitad:000\r\n\0"};//12
 uint8_t  M_OBSTRUC[]  = {"OBSTRUCCIONES:hh:mm:ss\r\n\0"};//25
-uint8_t ALL[130];
+uint8_t  LINK[] ={"https://io.adafruit.com/EmilioTonix/dashboards/myfirstmqtt\r\n"};//60
+// agregar link de 
+uint8_t ALL[ALL_size];
 TaskHandle_t xData_Base;
 extern ticket_base_t ticket_info;
 extern barras_t barras_data;
@@ -44,14 +46,15 @@ void data_base_task (void *pvParameters)
             string_parse(M_NORMAL,ticket_info.normal);
             string_parse(M_MITAD,ticket_info.mitad);
             string_parse(M_TRANSVALE,ticket_info.transvale);
-            strcat(ALL,"Subject: REPORTE RUTA 27\r\n");
-            strcat(ALL,"REPORTE\r\n\r\n");
+            strcat(ALL,"Subject: REPORTE RUTA 27\r\n");//26
+            strcat(ALL,"REPORTE\r\n\r\n");//11
             strcat(ALL,M_SUBIDAS);
             strcat(ALL,M_BAJADAS);
             strcat(ALL,M_OBSTRUC);
             strcat(ALL,M_NORMAL);
             strcat(ALL,M_MITAD);
             strcat(ALL,M_TRANSVALE);
+            strcat(ALL,LINK);
             printf("%s",ALL);
             // falta para el folio
             os_timer_arm(&mail_send,50,0);

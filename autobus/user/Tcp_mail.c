@@ -39,13 +39,10 @@ uint8_t static DATA[]={"DATA\r\n"};
 uint8_t static MESSAGE[]={"REPORTE DE CAMION\r\n"};
 uint8_t static DOT[]={".\r\n"};
 uint8_t static QUIT[]={"QUIT\r\n"};
+uint8_t static data_counter;
 
-extern uint8_t  M_SUBIDAS[];
-extern uint8_t  M_BAJADAS[];
-extern uint8_t  M_NORMAL[];
-extern uint8_t  M_TRANSVALE[];
-extern uint8_t  M_MITAD[];
-extern uint8_t  M_OBSTRUC[];
+extern uint8_t ALL[ALL_size];
+
 bool First_flag=true;
 bool DATA_END=false;
 
@@ -122,26 +119,12 @@ static void MAIL_SEND(struct espconn *pespconn)
 			user_send_data(pespconn,MESSAGE,MESSAGE_LEN);
 			break;
 		case 7:
-			user_send_data(pespconn,M_SUBIDAS,M_SUBIDA_LEN);
+			user_send_data(pespconn,ALL,ALL_size);
 			break;
 		case 8:
-			user_send_data(pespconn,M_BAJADAS,M_BAJADAS_LEN);
+			user_send_data(pespconn,DOT,DOT_LEN);
 			break;
 		case 9:
-			user_send_data(pespconn,M_OBSTRUC,M_OBSTRUC_LEN);
-			break;
-		case 10:
-			user_send_data(pespconn,M_NORMAL,M_NORMAL_LEN);
-			break;
-		case 11:
-			user_send_data(pespconn,M_TRANSVALE,M_TRANSVALE_LEN);
-			break;
-		case 12:
-			user_send_data(pespconn,M_MITAD,M_MITAD_LEN);
-			break;
-		case 13:
-			user_send_data(pespconn,DOT,DOT_LEN);
-		case 14:
 			user_send_data(pespconn,QUIT,QUIT_LEN);
 			DATA_END=true;
 			break;
