@@ -15,13 +15,16 @@
  *******************************************************************************/
 
 #include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "barras.h"
+
 #include "freeRTOS_wrapper.h"
-#include "esp_common.h"
+
 #include "mqtt/MQTTClient.h"
+
+#include "user_config.h"
+
+
+#include "barras.h"
+//#include "MQTTEcho.h"
 
 
 #define MQTT_CLIENT_THREAD_NAME         "mqtt_client_thread"
@@ -120,7 +123,7 @@ static void mqtt_client_thread(void* pvParameters)
                 message.retained = 0;
                 message.payload = payload;
                 message.payloadlen = strlen(payload);
-                itoa (Data_Read.subidas,data_to_send,10);
+                //itoa (Data_Read.subidas,data_to_send,10);
                 sprintf(payload, data_to_send);
                 
 
@@ -132,7 +135,7 @@ static void mqtt_client_thread(void* pvParameters)
                 {
                     printf("MQTT publish topic \"EmilioTonix/feeds/subidas\", message number is %d\n", count);
                 }
-                itoa (Data_Read.bajadas,data_to_send,10);
+                //itoa (Data_Read.bajadas,data_to_send,10);
                 sprintf(payload, data_to_send);
                 if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/bajadas", &message)) != 0) 
                 {
@@ -142,7 +145,7 @@ static void mqtt_client_thread(void* pvParameters)
                 {
                     printf("MQTT publish topic \"EmilioTonix/feeds/bajadas\", message number is %d\n", count);
                 }
-                itoa (Data_Read.bajadas,pasajeros,10);
+                //itoa (Data_Read.bajadas,pasajeros,10);
                 sprintf(payload, data_to_send);
                 if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", &message)) != 0) 
                 {
