@@ -9,10 +9,10 @@
  * without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom the Software is furnished
  * to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -22,16 +22,67 @@
  *
  */
 
-#ifndef __USER_CONFIG_H__
-#define __USER_CONFIG_H__
-//#define HOUSE
-#ifdef HOUSE
-	#define SSID "HOME-5818"
-	#define PASS "C900797AAD34D8AB"
-#else
-	#define SSID "AXTEL-XTREMO-4157"
-	#define PASS "89615461"
+#ifndef __HW_TIMER_H__
+#define __HW_TIMER_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** \defgroup HW_Timer_APIs Hardware timer APIs
+  * @brief Hardware timer APIs
+  *
+  * @attention Hardware timer can not interrupt other ISRs.
+  *
+  */
+
+/** @addtogroup HW_Timer_APIs
+  * @{
+  */
+
+
+/**
+  * @brief   Initialize the hardware ISR timer.
+  *
+  * @param   uint8 req : 0, not autoload; 1, autoload mode.
+  *
+  * @return  null
+  */
+void hw_timer_init(uint8 req);
+
+/**
+  * @brief   Set a trigger timer delay to enable this timer.
+  *
+  * @param   uint32 val : Timing 
+  *    - In autoload mode, range : 50 ~ 0x7fffff
+  *    - In non-autoload mode, range : 10 ~ 0x7fffff
+  *
+  * @return  null
+  */
+void hw_timer_arm(uint32 val);
+
+/**
+  * @brief   Set timer callback function.
+  *
+  *         For enabled timer, timer callback has to be set.
+  *
+  * @param   uint32 val : Timing 
+  *    - In autoload mode, range : 50 ~ 0x7fffff
+  *    - In non-autoload mode, range : 10 ~ 0x7fffff
+  *
+  * @return  null
+  */
+void hw_timer_set_func(void (* user_hw_timer_cb_set)(void));
+
+void hw_timer_pause();
+
+
+/**
+  * @}
+  */
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif
-

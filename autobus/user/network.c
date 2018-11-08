@@ -69,7 +69,7 @@ static void conn_AP_Init(void)
     wifi_softap_dhcps_start(); // enable soft-AP DHCP server
     printf("AP_enabled\r\n");
     xTaskCreate(Time_check,"ntp server",512,NULL,3,NULL);
-
+    
 }
 void wifi_init(void)
 {

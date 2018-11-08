@@ -33,7 +33,8 @@ os_timer_t obs_check;
 #define Set_timer(timer,func)  \
 		os_timer_disarm(&timer);\
 		os_timer_setfn(&timer,(os_timer_func_t *)func, NULL);
-
+extern QueueHandle_t MQTT_Queue;
+extern SemaphoreHandle_t MQTT_semaphore;
 void barras_delanteras_task(void *pvParameters)
 {
 	gpio_action_t barra;
@@ -129,4 +130,14 @@ void obs_check_function (void)
 		obstruccion   = 0;
 		Clear_bar_flags();
 	}
+	if(MQTT_Queue!=NULL)
+	{
+		xQueueOverwrite(MQTT_Queue, &barras_data);
+	}
+	if(MQTT_semaphore!=NULL)
+	{
+		xSemaphoreGive(MQTT_semaphore);
+	}
+
+	
 }
