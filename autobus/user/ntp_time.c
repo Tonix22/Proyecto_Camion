@@ -9,7 +9,7 @@
 #include "data_base.h"
 #include "user_config.h"
 #include "uart.h"
-#include "MQTTEcho.h"
+
 extern TaskHandle_t xData_Base;
 extern xQueueHandle xQueueUart;
 #define TIME_COMMAND_QUEUE_SIZE 1U
@@ -72,6 +72,11 @@ void Time_check (void *pvParameters)
 	}
 	while(temporal == 0);
 	internal_timer = temporal;
+	/*MQTT init
+		Updates a server to update a internet service of data in the system
+	*/
+	user_conn_init();
+	/*MQTT init*/
 	while(1)
 	{
 		 vTaskDelay(250/portTICK_RATE_MS);

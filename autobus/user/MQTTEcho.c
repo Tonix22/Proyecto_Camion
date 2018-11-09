@@ -24,7 +24,7 @@
 
 
 #include "barras.h"
-//#include "MQTTEcho.h"
+#include "MQTTEcho.h"
 
 
 #define MQTT_CLIENT_THREAD_NAME         "mqtt_client_thread"
@@ -33,6 +33,7 @@
 
 #define MQTT_BROKER  "io.adafruit.com"  /* MQTT Broker Address*/
 #define MQTT_PORT    1883             /* MQTT Port*/
+
 uint8_t AIO_USERNAME[]    =   "EmilioTonix";
 uint8_t AIO_KEY[]         =  "8281440a417b4e16be3b67ba126247d0";
 
@@ -40,6 +41,7 @@ QueueHandle_t MQTT_Queue = NULL;
 SemaphoreHandle_t MQTT_semaphore = NULL;
 static xTaskHandle mqttc_client_handle;
 
+const uint16_t Ten_pow[5]={1,10,100,1000,10000};
 
 
 static void messageArrived(MessageData* data)
@@ -124,6 +126,8 @@ static void mqtt_client_thread(void* pvParameters)
                 message.payload = payload;
                 message.payloadlen = strlen(payload);
                 //itoa (Data_Read.subidas,data_to_send,10);
+                
+                number_to_string(Data_Read.subidas,data_to_send);
                 sprintf(payload, data_to_send);
                 
 
@@ -135,7 +139,7 @@ static void mqtt_client_thread(void* pvParameters)
                 {
                     printf("MQTT publish topic \"EmilioTonix/feeds/subidas\", message number is %d\n", count);
                 }
-                //itoa (Data_Read.bajadas,data_to_send,10);
+                number_to_string (Data_Read.bajadas,data_to_send);
                 sprintf(payload, data_to_send);
                 if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/bajadas", &message)) != 0) 
                 {
@@ -145,7 +149,7 @@ static void mqtt_client_thread(void* pvParameters)
                 {
                     printf("MQTT publish topic \"EmilioTonix/feeds/bajadas\", message number is %d\n", count);
                 }
-                //itoa (Data_Read.bajadas,pasajeros,10);
+                number_to_string(Data_Read.bajadas,data_to_send);
                 sprintf(payload, data_to_send);
                 if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", &message)) != 0) 
                 {
@@ -167,7 +171,33 @@ static void mqtt_client_thread(void* pvParameters)
     vTaskDelete(NULL);
     return;
 }
-
+void number_to_string(uint16_t val,uint8_t *string)
+{
+    uint8_t  size;
+    uint8_t digit;
+    uint16_t temp = val;
+    do
+    {
+        temp = temp/10;
+        size++;
+    }
+    while(temp!=0);
+    
+    do
+    {
+        size--;
+        if(digit == 0)
+        {
+            string[0]=(val/Ten_pow[size])+0x30;
+        }
+        else
+        {
+            string[digit]=((val/Ten_pow[size])%10)+0x30;
+        }
+        digit++;
+    }while(size!=0);
+}
+//const uint16_t Ten_pow[5]={1,10,100,1000,10000};
 void user_conn_init(void)
 {
     

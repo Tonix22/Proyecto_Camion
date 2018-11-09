@@ -24,7 +24,7 @@
  
 #include "esp_common.h"
 #include "user_config.h"
-/*
+
 #include "freeRTOS_wrapper.h"
 #include "user_config.h"
 #include "ntp_time.h"
@@ -34,8 +34,6 @@
 #include "barras.h"
 #include "network.h"
 #include "MQTTEcho.h"
-extern TaskHandle_t xData_Base;
-extern void ets_wdt_disable (void);*/
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -94,40 +92,37 @@ uint32 user_rf_cal_sector_set(void)
 
  void user_init(void)
 {
-   // system_soft_wdt_feed();
-    //uart_user_init();//Change BaudRate to 9600
+    system_soft_wdt_feed();
+    uart_user_init();//Change BaudRate to 9600
 
-    //GPIO_init();
+    GPIO_init();
     /*GPIO_init inicializa:
         GPIO
         Barras
         Impresora
     */
-	//vTaskDelay(100/portTICK_RATE_MS);
+	vTaskDelay(100/portTICK_RATE_MS);
 
-	//printer_init();
+	printer_init();
     /*printer_init
         Uart Baud rate 9600
         printer secuence init
         priter_task
     */
-   // xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
-   // vTaskDelay(100/portTICK_RATE_MS);
+    xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
+    vTaskDelay(100/portTICK_RATE_MS);
     /*
     This task creates hw timer firmware to make functioncall backs
     and set passanger bars_logic
     */
-    //wifi_init();
+    wifi_init();
     /*wifi_init
         Station and acces point mode
         Access point data
             NAME:central_comunication
             Pass:12345678
         Time_check: ntp server
+            INIT MQTT after ntp services gets time.
         TcpLocalServer: PORT 1023
     */
-  // vTaskDelay(10000/portTICK_RATE_MS);
-   	//INIT MQTT
-	user_conn_init();
-   
 }
