@@ -23,6 +23,8 @@
  */
  
 #include "esp_common.h"
+#include "user_config.h"
+
 #include "freeRTOS_wrapper.h"
 #include "user_config.h"
 #include "ntp_time.h"
@@ -31,8 +33,7 @@
 #include "data_base.h"
 #include "barras.h"
 #include "network.h"
-extern TaskHandle_t xData_Base;
-extern void ets_wdt_disable (void);
+#include "MQTTEcho.h"
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -100,7 +101,7 @@ uint32 user_rf_cal_sector_set(void)
         Barras
         Impresora
     */
-	//vTaskDelay(100/portTICK_RATE_MS);
+	vTaskDelay(100/portTICK_RATE_MS);
 
 	printer_init();
     /*printer_init
@@ -121,6 +122,7 @@ uint32 user_rf_cal_sector_set(void)
             NAME:central_comunication
             Pass:12345678
         Time_check: ntp server
+            INIT MQTT after ntp services gets time.
         TcpLocalServer: PORT 1023
     */
    
