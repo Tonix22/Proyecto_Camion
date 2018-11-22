@@ -99,8 +99,6 @@ void printer_print_leftover(gpio_action_t ticket_recieved )
 		{
 			sprintf(printer_time.hora,"%d:%d:%d\0",ntp_time_rcv->tm_hour,ntp_time_rcv->tm_min,ntp_time_rcv->tm_sec);
 			sprintf(printer_time.fecha,"%d/%d/%d\0",ntp_time_rcv->tm_mday,(ntp_time_rcv->tm_mon)+1,(ntp_time_rcv->tm_year)%100);
-			//memcpy(printer_time.hora, ntp_time_rcv.hora, sizeof(printer_time.hora));
-			//memcpy(printer_time.fecha, ntp_time_rcv.fecha, sizeof(printer_time.fecha));
 		}
 	}
 		

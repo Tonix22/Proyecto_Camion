@@ -123,12 +123,19 @@ void Time_check (void *pvParameters)
 		 {
 			internal_timer++;
 		 }
-		 if(xSemaphoreTake(NTP_Request, ( TickType_t ) 0 ) == pdTRUE)
+		 if(NTP_Request!=NULL)
 		 {
-			time = internal_timer;
-		 	time_string = gmtime(&time);
-		 	xQueueOverwrite(time_state_queue, &time_string);
+			if(xSemaphoreTake(NTP_Request, ( TickType_t ) 100 ) == pdTRUE)
+		 	{
+				time        = internal_timer;
+				time_string = gmtime(&time);
+				if(time_state_queue!=NULL)
+				{
+					xQueueOverwrite(time_state_queue, &time_string);
+				}
+			 }
 		 }
+
 	}
 }
 static void Summer_winter_time(struct tm * time)

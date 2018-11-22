@@ -54,7 +54,7 @@ spi_mode=DIO
 echo "spi mode: $spi_mode"
 echo ""
 
-spi_size_map=6
+spi_size_map=4
 flash=4096
 echo "spi size: 4096KB"
 echo "spi ota map:  1024KB + 1024KB"

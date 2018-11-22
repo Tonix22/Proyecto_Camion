@@ -125,5 +125,4 @@ uint32 user_rf_cal_sector_set(void)
             INIT MQTT after ntp services gets time.
         TcpLocalServer: PORT 1023
     */
-   
 }

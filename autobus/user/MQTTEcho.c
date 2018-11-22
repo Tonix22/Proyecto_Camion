@@ -119,18 +119,17 @@ static void mqtt_client_thread(void* pvParameters)
                 Data_Read.subidas  = Que_handler.subidas;
                 pasajeros          = Data_Read.subidas-Data_Read.bajadas;
                 MQTTMessage message;
-                char payload[4];
-                char data_to_send[4];
+                char payload[5];
+                char data_to_send[5];
                 message.qos = QOS2;
                 message.retained = 0;
                 message.payload = payload;
                 message.payloadlen = strlen(payload);
                 //itoa (Data_Read.subidas,data_to_send,10);
-                
                 number_to_string(Data_Read.subidas,data_to_send);
                 sprintf(payload, data_to_send);
                 
-
+                printf("before update \n");
                 if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/subidas", &message)) != 0) 
                 {
                     printf("Return code from MQTT publish is %d\n", rc);
@@ -139,17 +138,8 @@ static void mqtt_client_thread(void* pvParameters)
                 {
                     printf("MQTT publish topic \"EmilioTonix/feeds/subidas\", message number is %d\n", count);
                 }
-                number_to_string (Data_Read.bajadas,data_to_send);
-                sprintf(payload, data_to_send);
-                if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/bajadas", &message)) != 0) 
-                {
-                    printf("Return code from MQTT publish is %d\n", rc);
-                } 
-                else 
-                {
-                    printf("MQTT publish topic \"EmilioTonix/feeds/bajadas\", message number is %d\n", count);
-                }
-                number_to_string(Data_Read.bajadas,data_to_send);
+                printf("after update \n");
+                number_to_string(pasajeros,data_to_send);
                 sprintf(payload, data_to_send);
                 if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", &message)) != 0) 
                 {
@@ -159,7 +149,6 @@ static void mqtt_client_thread(void* pvParameters)
                 {
                     printf("MQTT publish topic \"EmilioTonix/feeds/Pasajeros\", message number is %d\n", count);
                 }
-
             }
             xSemaphoreGive(MQTT_semaphore);
         }
@@ -171,33 +160,15 @@ static void mqtt_client_thread(void* pvParameters)
     vTaskDelete(NULL);
     return;
 }
+
 void number_to_string(uint16_t val,uint8_t *string)
 {
-    uint8_t  size;
-    uint8_t digit;
-    uint16_t temp = val;
-    do
-    {
-        temp = temp/10;
-        size++;
-    }
-    while(temp!=0);
-    
-    do
-    {
-        size--;
-        if(digit == 0)
-        {
-            string[0]=(val/Ten_pow[size])+0x30;
-        }
-        else
-        {
-            string[digit]=((val/Ten_pow[size])%10)+0x30;
-        }
-        digit++;
-    }while(size!=0);
+    string[0] = (val/1000)+0x30;
+    string[1] = ((val%1000)/100)+0x30;
+    string[2] = ((val%100)/10)+0x30;
+    string[3] = (val%10)+0x30;
 }
-//const uint16_t Ten_pow[5]={1,10,100,1000,10000};
+
 void user_conn_init(void)
 {
     
