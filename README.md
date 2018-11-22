@@ -17,11 +17,9 @@ Note: Some files could fail because \r\n just rewrite with\n
 Pending stuff
   1. Check why barras traseras is not counting obstruction. 
   2. Make an integral validation between barras traseras and delanteras.
-  3. Validate de passanger number whit MQTT
-  4. Remove BAJAS FROM THE MQTT INFO 
-  5. MAKE GPS proyect in an independent proyect
-  6.- Integrate GPS to MQtt
-  7.-Check JSON Stuff
-  5.-MQTT features
+  3. MAKE GPS proyect in an independent proyect
+  4. Integrate GPS to MQtt
+  5. Check JSON Stuff
+  6. MQTT features
      a)Update an MQTT button to make a FOTA
      b)Make GPS Map enable
