@@ -135,7 +135,6 @@ void Time_check (void *pvParameters)
 				}
 			 }
 		 }
-
 	}
 }
 static void Summer_winter_time(struct tm * time)
