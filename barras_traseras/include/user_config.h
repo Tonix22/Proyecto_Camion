@@ -24,7 +24,7 @@
 
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
-//#define MY_SERVER
+#define MY_SERVER
 #ifdef MY_SERVER
 #define SSID "central_comunication"
 #define PASS "12345678"

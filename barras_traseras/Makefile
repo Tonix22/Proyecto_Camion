@@ -23,7 +23,8 @@ GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user    \
-	sample_lib
+	sample_lib\
+	tcp_client
 
 endif # } PDIR
 
@@ -47,7 +48,8 @@ endif
 
 COMPONENTS_eagle.app.v6 = \
 	user/libuser.a  \
-	sample_lib/libsample.a
+	sample_lib/libsample.a \
+	tcp_client/libtcpclient.a
 
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDK_PATH)/lib        \
@@ -124,6 +126,9 @@ DDEFINES +=				\
 #
 
 INCLUDES := $(INCLUDES) -I $(PDIR)include
+INCLUDES += -I $(SDK_PATH)/include/espressif/esp8266
+INCLUDES += -I $(SDK_PATH)/include/openssl/openssl
+
 sinclude $(SDK_PATH)/Makefile
 
 .PHONY: FORCE

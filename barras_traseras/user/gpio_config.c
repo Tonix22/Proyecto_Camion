@@ -1,7 +1,8 @@
 
 #include "freeRTOS_wrapper.h"
 #include "user_config.h"
-#include "gpio_config.h"
+#include "esp_common.h"
+#include "../include/gpio_config.h"
 /**********************************SAMPLE CODE*****************************/
 #define ETS_GPIO_INTR_ENABLE()  _xt_isr_unmask(1 << ETS_GPIO_INUM)  //ENABLE INTERRUPTS
 #define CLEAR() 
@@ -49,7 +50,7 @@ void GPIO_init(void)
 	gpio_state_queue   = xQueueCreate(1, sizeof(uint8_t));
 	gpio_bar_semaphore = xSemaphoreCreateMutex();
 
-	if ((NULL != gpio_state_queue) && (NULL != gpio_bar_semaphore) ) 
+	if ((NULL != gpio_state_queue) && (NULL != gpio_bar_semaphore)) 
 	{
 		printf("gpio Queue created\r\n");
 	} 
@@ -58,8 +59,7 @@ void GPIO_init(void)
 		/* Return error */
 		printf("gpio Queue error created\r\n");
 	}
-	xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 0 );
-	
+	xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 0 );	
 	gpio_intr_handler_register(io_intr_handler, NULL);
 	ETS_GPIO_INTR_ENABLE();
 }
