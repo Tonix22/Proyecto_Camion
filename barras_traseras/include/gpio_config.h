@@ -4,7 +4,7 @@
 #include "espconn.h"
 #include "gpio.h"
 #define BARRA_DER GPIO_Pin_0
-#define BARRA_IZQ GPIO_Pin_2
+#define BARRA_IZQ GPIO_Pin_5
 void io_intr_handler(void);
 static void gpio_personal_config(uint16 esp_pin);
 void GPIO_init(void);

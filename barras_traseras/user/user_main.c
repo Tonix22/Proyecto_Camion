@@ -77,6 +77,8 @@ uint32 user_rf_cal_sector_set(void)
 
     return rf_cal_sec;
 }
+
+
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here

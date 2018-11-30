@@ -6,6 +6,8 @@ void false_move_check (void);
 void obs_check_function (void);
 static void BAR_CHECK (gpio_action_t action);
 void barras_traseras_task(void *pvParameters);
+void false_move_check (void);
+void obs_check_function (void);
 typedef struct barras
 {
     uint16_t subidas;
