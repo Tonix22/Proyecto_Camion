@@ -6,7 +6,7 @@
 
 #define TCP_SERVER_GREETING "Hello!This is a tcp server test\n"
 
-#define TCP_SERVER_KEEP_ALIVE_ENABLE 1
+#define TCP_SERVER_KEEP_ALIVE_ENABLE 0
 
 #define TCP_SERVER_KEEP_ALIVE_IDLE_S (100)
 #define TCP_SERVER_RETRY_INTVL_S (5)
@@ -18,7 +18,7 @@ const uint8 tcp_server_ip[4] = { 192, 168, 1, 100 };
 #define TCP_SERVER_REMOTE_PORT (7007)
 #define TCP_CLIENT_GREETING "Hello!This is a tcp client test\n"
 
-#define TCP_CLIENT_KEEP_ALIVE_ENABLE 1
+#define TCP_CLIENT_KEEP_ALIVE_ENABLE 0
 
 #define TCP_CLIENT_KEEP_ALIVE_IDLE_S (10)
 #define TCP_CLIENT_RETRY_INTVL_S (5)

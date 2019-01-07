@@ -147,7 +147,7 @@ void printer_task(void *pvParameters)
 				access = boleto;
 				if(access != barra_derecha && access != barra_izquierda)
 				{
-					UART_SetPrintPort(UART1);
+					UART_SetPrintPort(UART0);
 					Centrar(CENTRAR_ON);
 					vTaskDelay(100/portTICK_RATE_MS);
 					Negritas(BOLD_ON);

@@ -29,8 +29,8 @@
 	#define SSID "HOME-5818"
 	#define PASS "C900797AAD34D8AB"
 #else
-	#define SSID "AXTEL-XTREMO-4157"
-	#define PASS "89615461"
+	#define SSID "central_comunication"
+	#define PASS "12345678"
 #endif
 
 #endif

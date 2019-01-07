@@ -92,7 +92,7 @@ uint32 user_rf_cal_sector_set(void)
 
  void user_init(void)
 {
-    system_soft_wdt_feed();
+    system_soft_wdt_feed();//disable software watchdog
     uart_user_init();//Change BaudRate to 9600
 
     GPIO_init();

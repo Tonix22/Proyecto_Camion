@@ -81,7 +81,8 @@ void TcpLocalClient(void* arg)
 {
 
     uint8 con_status = wifi_station_get_connect_status();
-    while (con_status != STATION_GOT_IP) {
+    while (con_status != STATION_GOT_IP) 
+    {
         con_status = wifi_station_get_connect_status();
         DBG_PRINT("Connect ap %s\n",
                 con_status==STATION_IDLE?"IDLE":con_status==STATION_CONNECTING? "Connecting...":con_status==STATION_WRONG_PASSWORD? "Password":con_status==STATION_NO_AP_FOUND? "ap_not_find":con_status==STATION_CONNECT_FAIL?"Connect fail":"Get ip");
@@ -206,7 +207,6 @@ void TcpServerReconnectCb(void *arg, sint8 err)
 
 void TcpLocalServer(void* arg)
 {
-
     static struct espconn tcp_server_local;
     static esp_tcp tcp;
     tcp_server_local.type = ESPCONN_TCP;
@@ -221,7 +221,7 @@ void TcpLocalServer(void* arg)
 
     espconn_accept(&tcp_server_local);
     espconn_regist_time(&tcp_server_local, 20, 0);
-    vTaskDelete(NULL);
+    //vTaskDelete(NULL);
 }
 
 void UdpRecvCb(void *arg, char *pdata, unsigned short len)
