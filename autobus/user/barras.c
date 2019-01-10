@@ -35,6 +35,7 @@ os_timer_t obs_check;
 		os_timer_setfn(&timer,(os_timer_func_t *)func, NULL);
 extern QueueHandle_t MQTT_Queue;
 extern SemaphoreHandle_t MQTT_semaphore;
+
 void barras_delanteras_task(void *pvParameters)
 {
 	gpio_action_t barra;

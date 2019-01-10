@@ -92,37 +92,51 @@ uint32 user_rf_cal_sector_set(void)
 
  void user_init(void)
 {
-    system_soft_wdt_feed();//disable software watchdog
-    uart_user_init();//Change BaudRate to 9600
+    //disable software watchdog
+    system_soft_wdt_feed();
+
+    //Change BaudRate to 9600
+    uart_user_init();
+
+    /******************************************************************************
+     * FunctionName : GPIO_init
+     * Description  : GPIOS are divided in Bars and printers
+     * GPIO 12, 10 --> BARS [DER,IZQ]
+     * GPIO 0,4,5  -->[NORMAL,MITAD,TRANSVALE]
+     *******************************************************************************/
 
     GPIO_init();
-    /*GPIO_init inicializa:
-        GPIO
-        Barras
-        Impresora
-    */
 	vTaskDelay(100/portTICK_RATE_MS);
 
+    /******************************************************************************
+     * FunctionName : printer_init
+     * Description  : Initialize UART1, and create printer task
+     * NTP_Request-->Semaphore 
+     *******************************************************************************/
+
 	printer_init();
-    /*printer_init
-        Uart Baud rate 9600
-        printer secuence init
-        priter_task
-    */
+
+    /******************************************************************************
+     * FunctionName : barras_delanteras_task
+     * Description  : Bar check logic whith semaphores and timers. 
+     * NTP_Request-->Semaphore 
+     *******************************************************************************/
     xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
     vTaskDelay(100/portTICK_RATE_MS);
-    /*
-    This task creates hw timer firmware to make functioncall backs
-    and set passanger bars_logic
-    */
-    wifi_init();
-    /*wifi_init
-        Station and acces point mode
+
+    /******************************************************************************
+     * FunctionName : wifi_init
+     * Description  : Station and acces point mode
         Access point data
             NAME:central_comunication
             Pass:12345678
         Time_check: ntp server
             INIT MQTT after ntp services gets time.
-        TcpLocalServer: PORT 1023
+            TcpLocalServer: PORT 1024 
+     *******************************************************************************/
+       /*wifi_init
+
     */
+    wifi_init();
+
 }

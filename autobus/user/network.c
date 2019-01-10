@@ -2,6 +2,8 @@
 #include "user_config.h"
 #include "ntp_time.h"
 #include "Tcp_mail.h"
+#include "udp_client.h"
+
 #define SOFT_AP_SSID      "central_comunication"
 #define SOFT_AP_PASSWORD  "12345678"
 #define DEVICES_CAPACITY 4
@@ -38,7 +40,8 @@ void network_init(System_Event_t *evt)
            os_timer_arm(&acces_point_config,10,0);  
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
-			TcpLocalServer();//PORT 1023
+            udpServer();//1024
+            
             printf("station: " MACSTR "join, AID = %d\n", MAC2STR(evt->event_info.sta_connected.mac),
                     evt->event_info.sta_connected.aid);
             break;
