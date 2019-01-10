@@ -20,7 +20,11 @@ uint8_t ALL[ALL_size];
 TaskHandle_t xData_Base;
 extern ticket_base_t ticket_info;
 extern barras_t barras_data;
-extern barras_t tcp_barr_rcv;
+
+//BARRAS TRASERAS INFO
+extern barras_t udp_barr_rcv;
+//END INFO
+
 extern bool time_to_send;
 os_timer_t mail_send;
 
@@ -29,8 +33,8 @@ void data_base_task (void *pvParameters)
     vTaskDelay(1000/portTICK_RATE_MS);
     barras_t total;
 
-    total.bajadas=barras_data.bajadas+tcp_barr_rcv.bajadas;
-    total.subidas=barras_data.subidas+tcp_barr_rcv.subidas;
+    total.bajadas=barras_data.bajadas+udp_barr_rcv.bajadas;
+    total.subidas=barras_data.subidas+udp_barr_rcv.subidas;
 
     os_timer_setfn(&mail_send,(os_timer_func_t *)sending_mail, NULL);
     while(1)

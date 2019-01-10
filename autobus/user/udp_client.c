@@ -4,8 +4,9 @@
 #include "c_types.h"
 #include "user_config.h"
 #include "udp_client.h"
-
+#include "barras.h"
 const uint8 udp_server_ip[4] = { 10, 0, 0, 4 };
+barras_t udp_barr_rcv;
 
 void UdpRecvCb(void *arg, char *pdata, unsigned short len)
 {
@@ -14,6 +15,19 @@ void UdpRecvCb(void *arg, char *pdata, unsigned short len)
     printf("%s\n",pdata);
     DBG_LINES("END");
     printf("\n");
+    if(pdata[0]=='U' && pdata[1]=='P')
+    {
+        udp_barr_rcv.subidas++;
+    }    
+    else if(pdata[0]=='D' && pdata[1]=='O' && pdata[2]=='W' && pdata[3]=='N')
+    {
+        udp_barr_rcv.bajadas++;
+    }
+    else if(pdata[0]=='O' && pdata[1]=='B' && pdata[2]=='S')
+    {
+         udp_barr_rcv.obs++;
+    }
+
 }
 void UdpSendCb(void* arg)
 {
@@ -40,7 +54,7 @@ void udpServer(void*arg)
     if (res != 0) {
         DBG_PRINT("UDP SERVER CREAT ERR ret:%d\n", res);
     }
-    vTaskDelete(NULL);
+    //vTaskDelete(NULL);
 }
 os_timer_t time1;
 static struct espconn udp_client;
@@ -83,7 +97,6 @@ void udpClient(void*arg)
     os_timer_setfn(&time1, t1Callback, NULL);
     os_timer_arm(&time1, 5000, 1);
 
-    vTaskDelete(NULL);
-
+    //vTaskDelete(NULL);
 }
 
