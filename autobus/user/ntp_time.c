@@ -110,13 +110,13 @@ void Time_check (void *pvParameters)
 			}
 			if(xQueueReceive(xQueueUart, &(mail_time), ( TickType_t ) 100) )
 			{
+				printf("rcv: %s",mail_time);
 				if(mail_time[0]=='m'&& mail_time[1]=='a'&&  mail_time[2]=='i' &&  mail_time[3]=='l' &&  mail_time[4]==':' )
 				{
 				    hora = (mail_time[5]-0x30)*10 + (mail_time[6]-0x30);
 					min  = (mail_time[8]-0x30)*10 + (mail_time[9]-0x30);
 					printf("Time: %d:%d\r\n",hora,min);
 				}
-
 			}
 		 }
 		 else

@@ -400,8 +400,12 @@ uart0_rx_intr_handler(void *para)
             {
                 char_number=0;
             }        
-            if(buffer[char_number-1]=='\n')
+            if(buffer[char_number-2]=='\r' && buffer[char_number-1]=='\n')
             {
+                if(char_number<10)
+                {
+                    buffer[char_number]='\0';
+                }
                 char_number=0;
                 xQueueSendFromISR(xQueueUart, &buffer,NULL); 
              }
