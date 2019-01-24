@@ -41,7 +41,7 @@ ticket_time printer_time;
 uint8_t UNIDAD[]      = {"UUnidad: 2069\r\n\0"};
 SemaphoreHandle_t NTP_Request;
 extern QueueHandle_t time_state_queue;
-extern QueueHandle_t gpio_state_queue;
+extern QueueHandle_t printer_state_queue;
 extern SemaphoreHandle_t gpio_printer_semaphore;
 
 void printer_init(void)
@@ -141,7 +141,7 @@ void printer_task(void *pvParameters)
 		if(xSemaphoreTake(gpio_printer_semaphore, ( TickType_t ) 100 ) == pdTRUE)
 		{
 			xSemaphoreGive(NTP_Request);
-			if(xQueueReceive(gpio_state_queue, &(boleto), ( TickType_t ) 0) == pdPASS)
+			if(xQueueReceive(printer_state_queue, &(boleto), ( TickType_t ) 20) == pdPASS)
 			{ 
 				
 				access = boleto;

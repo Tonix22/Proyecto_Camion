@@ -12,7 +12,7 @@
 #define OBST_CB 1
 #define GPIO_READ(gpio_read) GPIO_INPUT_GET(gpio_read)
 
-extern QueueHandle_t gpio_state_queue;
+extern QueueHandle_t bar_state_queue;
 extern SemaphoreHandle_t gpio_bar_semaphore;
 
 static bool subir_flag    = false;
@@ -49,7 +49,7 @@ void barras_delanteras_task(void *pvParameters)
 	{
 		if(xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 100 ) == pdTRUE)
 		{
-			if(xQueueReceive(gpio_state_queue, &(barra), ( TickType_t ) 0 ) == pdPASS)
+			if(xQueueReceive(bar_state_queue, &(barra), ( TickType_t ) 0 ) == pdPASS)
 			{ 
 				access = barra;
 				if(access == barra_derecha || access == barra_izquierda)

@@ -8,9 +8,12 @@
 #define Release_Normal(SEMA) xSemaphoreGive(SEMA);
 #define NORMAL_QUE_SEND(QUE,data) xQueueSend( QUE, ( void * ) &data, ( TickType_t ) 0 );
 #define CLEAR_ISR_FLAG GPIO_REG_WRITE(GPIO_STATUS_W1TC_ADDRESS, status);
-#define CLEAR_QUEUE_FROM_ISR xQueueSendFromISR(gpio_state_queue,( void * ) &action,NULL);
+#define CLEAR_PRINTER_QUEUE xQueueSendFromISR(printer_state_queue,( void * ) &action, &xHigherPriorityTaskWoken);
+#define CLEAR_BAR_QUEUE xQueueSendFromISR(bar_state_queue,( void * ) &action, &xHigherPriorityTaskWoken);
 
-QueueHandle_t gpio_state_queue = NULL;
+QueueHandle_t printer_state_queue = NULL;
+QueueHandle_t bar_state_queue = NULL;
+
 SemaphoreHandle_t gpio_printer_semaphore = NULL;
 SemaphoreHandle_t gpio_bar_semaphore = NULL;
 static os_timer_t gpio_handler;
@@ -20,6 +23,8 @@ static bool debouncer = false;
 void io_intr_handler(void)
 {
     uint32 status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);          //READ STATUS OF INTERRUPT
+
+	portBASE_TYPE xHigherPriorityTaskWoken;
 	/*Botones*/
 	if(debouncer == false)
 	{
@@ -45,22 +50,23 @@ void io_intr_handler(void)
 			os_timer_arm(&gpio_handler,500,0);
 		}
 		
-		CLEAR_QUEUE_FROM_ISR;
+		CLEAR_PRINTER_QUEUE;
 	}
 
-	/*Barras*/
+	//Barras
 	if (status & GPIO_Pin_10) 
 	{
 		action = barra_derecha;
 		Release(gpio_bar_semaphore);
-		CLEAR_QUEUE_FROM_ISR;
+		CLEAR_BAR_QUEUE;
 	}
 	if (status & GPIO_Pin_12) 
 	{
 		action = barra_izquierda;
 		Release(gpio_bar_semaphore);
-		CLEAR_QUEUE_FROM_ISR;
+		CLEAR_BAR_QUEUE;
 	}
+
 	CLEAR_ISR_FLAG;
 }
 void gpio_release_and_send(void)
@@ -87,16 +93,23 @@ void GPIO_init(void)
 	gpio_personal_config(GPIO_Pin_0);
 	
 	/* Create a queue capable of containing 1 unsigned char */
-	gpio_state_queue       = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
+	printer_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
+	bar_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
+
 	gpio_printer_semaphore = xSemaphoreCreateMutex();
 	gpio_bar_semaphore     = xSemaphoreCreateMutex();
 
 	/*Each half second the botton could read a signal*/
  	os_timer_setfn(&gpio_handler,(os_timer_func_t *)gpio_release_and_send, NULL);
 
-	if ((NULL != gpio_state_queue) && (NULL != gpio_printer_semaphore) && (NULL != gpio_bar_semaphore) ) 
+	if(printer_state_queue!=NULL && bar_state_queue!=NULL)
 	{
-		printf("gpio Queue created\r\n");
+		printf("Queue created\r\n");
+	}
+
+	if ((NULL != gpio_printer_semaphore) && (NULL != gpio_bar_semaphore)) 
+	{
+		printf("gpio sema created\r\n");
 	} 
 	else 
 	{
