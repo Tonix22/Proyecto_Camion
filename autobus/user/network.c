@@ -3,12 +3,14 @@
 #include "ntp_time.h"
 #include "Tcp_mail.h"
 #include "udp_client.h"
+#include "MQTTEcho.h"
 
 #define SOFT_AP_SSID      "central_comunication"
 #define SOFT_AP_PASSWORD  "12345678"
 #define DEVICES_CAPACITY 4
 static void conn_AP_Init(void);
 os_timer_t acces_point_config;
+os_timer_t MQTT_timer;
 
 /******************************************************************************
  * FunctionName : network_init
@@ -113,11 +115,21 @@ static void conn_AP_Init(void)
     }
     
     /****************************************************
+     ***********MQTT CONNECT INIT************************
+     ****************************************************/
+
+    os_timer_arm(&MQTT_timer,15000,0);
+
+
+    /****************************************************
      ***********NTP SERVER TASK INIT*********************
      ****************************************************/
-    xTaskCreate(Time_check,"ntp server",512,NULL,3,NULL);
+    xTaskCreate(Time_check,"ntp server",1024,NULL,4,NULL);
     /****************************************************/
-
+}
+void MQTT_EASY_AND_RELAX()
+{
+    mqtt_init();
 }
 /******************************************************************************
  * FunctionName : wifi_init
@@ -144,6 +156,7 @@ void wifi_init(void)
 
     /*Timer set to callback a configuration fucntion*/
     os_timer_setfn(&acces_point_config,(os_timer_func_t *)conn_AP_Init, NULL);
+    os_timer_setfn(&MQTT_timer,(os_timer_func_t *)MQTT_EASY_AND_RELAX, NULL);
 
     /*when connection is ready it will jump to the network_init callback*/
     wifi_station_connect();

@@ -19,20 +19,20 @@ QueueHandle_t time_state_queue = NULL;
 extern SemaphoreHandle_t NTP_Request;
 bool time_to_send = false;
 struct tm * time_string;
-static void Summer_winter_time(struct tm * time);
-
+static void Summer_winter_time(struct tm * time_temp);
 uint8_t hora;
 uint8_t min;
+
+uint32_t temporal;
+uint32_t internal_timer;
+time_t current_time;
+time_t time_set;
+uint8_t time_match;
+uint16_t time_check;
+int compare;
+
 void Time_check (void *pvParameters)
 {
-	uint32_t temporal;
-	uint32_t internal_timer;
-	time_t current_time;
-	char* ticket_time;
-	time_t time;
-	uint8_t time_match;
-	uint16_t time_check;
-	int compare;
 	ip_addr_t *addr = (ip_addr_t *)os_zalloc(sizeof(ip_addr_t));
 	sntp_setservername(0, "us.pool.ntp.org"); // set server 0 by domain name
 	sntp_setservername(1, "ntp.sjtu.edu.cn"); // set server 1 by domain name
@@ -47,8 +47,9 @@ void Time_check (void *pvParameters)
 	}
 	while(temporal == 0);
 	/*change UTC summer winter*/
-	time = internal_timer;
-	time_string = gmtime(&time);
+
+	time_set = internal_timer;
+	time_string = gmtime(&time_set);
 	sntp_stop();
 	vTaskDelay(500/portTICK_RATE_MS);
 	Summer_winter_time(time_string);
@@ -72,11 +73,6 @@ void Time_check (void *pvParameters)
 	}
 	while(temporal == 0);
 	internal_timer = temporal;
-	/*MQTT init
-		Updates a server to update a internet service of data in the system
-	*/
-	user_conn_init();
-	/*MQTT init*/
 	while(1)
 	{
 		 vTaskDelay(250/portTICK_RATE_MS);
@@ -91,13 +87,13 @@ void Time_check (void *pvParameters)
 		 	}
 		 	else
 		 	{
-			 	internal_timer=temporal;
+			 	internal_timer = temporal;
 		 	}
-			time = internal_timer;
-		 	time_string = gmtime(&time);
+			time_set = internal_timer;
+		 	time_string = gmtime(&time_set);
 			if(time_string->tm_hour==hora && time_string->tm_min==min && time_to_send==false )
 			{
-				xTaskCreate(data_base_task,"data base",1024,NULL,2,xData_Base);
+				xTaskCreate(data_base_task,"data base",1024,NULL,4,xData_Base);
 				//KILll task when end
 				    /*
     				This task manage all data between GPIOS printer and 
@@ -127,8 +123,8 @@ void Time_check (void *pvParameters)
 		 {
 			if(xSemaphoreTake(NTP_Request, ( TickType_t ) 100 ) == pdTRUE)
 		 	{
-				time        = internal_timer;
-				time_string = gmtime(&time);
+				time_set        = internal_timer;
+				time_string = gmtime(&time_set);
 				if(time_state_queue!=NULL)
 				{
 					xQueueOverwrite(time_state_queue, &time_string);
@@ -137,11 +133,11 @@ void Time_check (void *pvParameters)
 		 }
 	}
 }
-static void Summer_winter_time(struct tm * time)
+static void Summer_winter_time(struct tm * time_temp)
 {
-	int week_day = time->tm_wday;
-	int day      = time->tm_mday;
-	int month    = (time->tm_mon)+1;
+	int week_day = time_temp->tm_wday;
+	int day      = time_temp->tm_mday;
+	int month    = (time_temp->tm_mon)+1;
 	bool summer   = false;
 	//If it is sunday bigger than 25 and October
 	if(month>=10 && month<4)

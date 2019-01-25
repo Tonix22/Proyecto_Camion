@@ -5,6 +5,7 @@
 #include "freeRTOS_wrapper.h"
 #include "barras.h"
 #include "data_base.h"
+#include "MQTTEcho.h"
 
 #define ON 	1
 #define OFF 0
@@ -14,6 +15,7 @@
 
 extern QueueHandle_t bar_state_queue;
 extern SemaphoreHandle_t gpio_bar_semaphore;
+extern xTaskHandle mqttc_client_handle;
 
 static bool subir_flag    = false;
 static bool bajar_flag    = false;
@@ -138,6 +140,11 @@ void obs_check_function (void)
 	if(MQTT_semaphore!=NULL)
 	{
 		xSemaphoreGive(MQTT_semaphore);
+		xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
+                      MQTT_CLIENT_THREAD_STACK_WORDS,
+                      NULL,
+                      3,
+                      &mqttc_client_handle);
 	}
 
 	

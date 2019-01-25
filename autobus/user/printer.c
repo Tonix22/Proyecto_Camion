@@ -120,7 +120,6 @@ void printer_print_leftover(gpio_action_t ticket_recieved )
 		 printf("Costo: TRANSVALE\r\n");/*11 bytes*/
 	 }
 	 
-	 
 	 strcat(hora_ticket, printer_time.hora);
 	 printf("%s\r\n",hora_ticket);/*14 bytes*/
 	 
@@ -140,10 +139,12 @@ void printer_task(void *pvParameters)
 	{
 		if(xSemaphoreTake(gpio_printer_semaphore, ( TickType_t ) 100 ) == pdTRUE)
 		{
+			printf("semaprinter\n");
 			xSemaphoreGive(NTP_Request);
+			printf("NTP_Request\n");
 			if(xQueueReceive(printer_state_queue, &(boleto), ( TickType_t ) 20) == pdPASS)
 			{ 
-				
+				printf("printer queue\n");
 				access = boleto;
 				if(access != barra_derecha && access != barra_izquierda)
 				{

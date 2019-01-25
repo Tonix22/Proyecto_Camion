@@ -3,7 +3,7 @@
 #include "freeRTOS_wrapper.h"
 /**********************************SAMPLE CODE*****************************/
 #define ETS_GPIO_INTR_ENABLE()  _xt_isr_unmask(1 << ETS_GPIO_INUM)  //ENABLE INTERRUPTS
-#define PRINTER_COMMAND_QUEUE_SIZE 2U
+#define PRINTER_COMMAND_QUEUE_SIZE 1U
 #define Release(SEMA) xSemaphoreGiveFromISR(SEMA,NULL);
 #define Release_Normal(SEMA) xSemaphoreGive(SEMA);
 #define NORMAL_QUE_SEND(QUE,data) xQueueSend( QUE, ( void * ) &data, ( TickType_t ) 0 );
@@ -28,21 +28,21 @@ void io_intr_handler(void)
 	/*Botones*/
 	if(debouncer == false)
 	{
-		if ((status & GPIO_Pin_0))
+		if ((status & GPIO_Pin_0) && debouncer == false )
 		{
 			action    = normal;
 			debouncer = true;
 			Release(gpio_printer_semaphore);
 			os_timer_arm(&gpio_handler,500,0);
 		}
-		if ((status & GPIO_Pin_4))
+		if ((status & GPIO_Pin_4) && debouncer == false)
 		{
 			action    = mitad;
 			debouncer = true;
 			Release(gpio_printer_semaphore);
 			os_timer_arm(&gpio_handler,500,0);
 		}
-		if ((status & GPIO_Pin_5))
+		if ((status & GPIO_Pin_5) && debouncer == false)
 		{
 			action    = transvale;
 			debouncer = true;
@@ -57,13 +57,13 @@ void io_intr_handler(void)
 	if (status & GPIO_Pin_10) 
 	{
 		action = barra_derecha;
-		Release(gpio_bar_semaphore);
+		//Release(gpio_bar_semaphore);
 		CLEAR_BAR_QUEUE;
 	}
 	if (status & GPIO_Pin_12) 
 	{
 		action = barra_izquierda;
-		Release(gpio_bar_semaphore);
+		//Release(gpio_bar_semaphore);
 		CLEAR_BAR_QUEUE;
 	}
 
