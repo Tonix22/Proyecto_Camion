@@ -39,11 +39,10 @@ void network_init(System_Event_t *evt)
             printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
-           os_timer_arm(&acces_point_config,10,0);  
+           //os_timer_arm(&acces_point_config,10,0);  
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
             udpServer();//1024
-            
             printf("station: " MACSTR "join, AID = %d\n", MAC2STR(evt->event_info.sta_connected.mac),
                     evt->event_info.sta_connected.aid);
             break;
@@ -115,22 +114,12 @@ static void conn_AP_Init(void)
     }
     
     /****************************************************
-     ***********MQTT CONNECT INIT************************
-     ****************************************************/
-
-    os_timer_arm(&MQTT_timer,15000,0);
-
-
-    /****************************************************
      ***********NTP SERVER TASK INIT*********************
      ****************************************************/
-    xTaskCreate(Time_check,"ntp server",1024,NULL,4,NULL);
+    xTaskCreate(Time_check,"ntp server",1024,NULL,1,NULL);
     /****************************************************/
 }
-void MQTT_EASY_AND_RELAX()
-{
-    mqtt_init();
-}
+
 /******************************************************************************
  * FunctionName : wifi_init
  * Description  : Initialize the wifi conection as station and access point.
@@ -155,9 +144,9 @@ void wifi_init(void)
     wifi_set_event_handler_cb(network_init);
 
     /*Timer set to callback a configuration fucntion*/
-    os_timer_setfn(&acces_point_config,(os_timer_func_t *)conn_AP_Init, NULL);
-    os_timer_setfn(&MQTT_timer,(os_timer_func_t *)MQTT_EASY_AND_RELAX, NULL);
+    //os_timer_setfn(&acces_point_config,(os_timer_func_t *)conn_AP_Init, NULL);
 
     /*when connection is ready it will jump to the network_init callback*/
     wifi_station_connect();
+
 }

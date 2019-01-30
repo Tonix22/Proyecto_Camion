@@ -16,14 +16,13 @@ QueueHandle_t bar_state_queue = NULL;
 
 SemaphoreHandle_t gpio_printer_semaphore = NULL;
 SemaphoreHandle_t gpio_bar_semaphore = NULL;
-static os_timer_t gpio_handler;
+os_timer_t gpio_handler;
 gpio_action_t action;
 static bool debouncer = false;
 
 void io_intr_handler(void)
 {
     uint32 status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);          //READ STATUS OF INTERRUPT
-
 	portBASE_TYPE xHigherPriorityTaskWoken;
 	/*Botones*/
 	if(debouncer == false)
@@ -73,14 +72,14 @@ void gpio_release_and_send(void)
 {
 	debouncer = false;
 }
-static void gpio_personal_config(uint16 esp_pin)
+void gpio_personal_config(uint16 esp_pin)
 {
-	GPIO_ConfigTypeDef io_in_conf;
-    io_in_conf.GPIO_IntrType = GPIO_PIN_INTR_NEGEDGE;
-    io_in_conf.GPIO_Mode = GPIO_Mode_Input;
-    io_in_conf.GPIO_Pin = esp_pin;
-    io_in_conf.GPIO_Pullup = GPIO_PullUp_EN;
-    gpio_config(&io_in_conf);
+	GPIO_ConfigTypeDef *io_in_conf =(GPIO_ConfigTypeDef*)zalloc(sizeof(GPIO_ConfigTypeDef));
+    io_in_conf->GPIO_IntrType = GPIO_PIN_INTR_NEGEDGE;
+    io_in_conf->GPIO_Mode = GPIO_Mode_Input;
+    io_in_conf->GPIO_Pin = esp_pin;
+    io_in_conf->GPIO_Pullup = GPIO_PullUp_EN;
+    gpio_config(io_in_conf);
 }
 void GPIO_init(void)
 {
@@ -118,6 +117,7 @@ void GPIO_init(void)
 	}
 	/*block semaphore wating them for being realised*/
 	xSemaphoreTake( gpio_printer_semaphore, ( TickType_t ) 0 );
+	vTaskDelay(100/portTICK_RATE_MS);
 	xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 0 );
 	
 	gpio_intr_handler_register(io_intr_handler, NULL);

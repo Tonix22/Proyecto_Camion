@@ -131,7 +131,7 @@ typedef struct {
 /** @addtogroup UART_Driver_APIs
   * @{
   */
-
+int uart_tx_one_char(uint8 uart, uint8 TxChar);
 /**  
   * @brief   Wait uart tx fifo empty, do not use it if tx flow control enabled.
   * 

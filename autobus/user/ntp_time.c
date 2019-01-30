@@ -73,11 +73,19 @@ void Time_check (void *pvParameters)
 	}
 	while(temporal == 0);
 	internal_timer = temporal;
+
+	/****************************************************
+     ***********MQTT CONNECT INIT************************
+     ****************************************************/
+
+    //mqtt_init();
+
 	while(1)
 	{
-		 vTaskDelay(250/portTICK_RATE_MS);
+		 vTaskDelay(1000/portTICK_RATE_MS);
 		 time_check++;
-		 if(time_check==40)// 10 secs
+		 
+		 if(time_check == 10)// 10 secs
 		 {
 			time_check=0;
 			temporal = sntp_get_current_timestamp();
@@ -93,7 +101,7 @@ void Time_check (void *pvParameters)
 		 	time_string = gmtime(&time_set);
 			if(time_string->tm_hour==hora && time_string->tm_min==min && time_to_send==false )
 			{
-				xTaskCreate(data_base_task,"data base",1024,NULL,4,xData_Base);
+				xTaskCreate(data_base_task,"data base",1024,NULL,2,xData_Base);
 				//KILll task when end
 				    /*
     				This task manage all data between GPIOS printer and 

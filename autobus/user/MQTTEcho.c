@@ -131,7 +131,7 @@ void mqtt_init(void)
 		/* Return error */
 		printf("Mqtt sema and queue erro\r\n");
 	}
-
+    
     char* address = malloc(sizeof(char)*16);
     address = MQTT_BROKER;
     printf("mqtt client thread starts\n");   

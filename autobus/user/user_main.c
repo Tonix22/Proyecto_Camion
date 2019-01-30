@@ -21,19 +21,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
- 
-#include "esp_common.h"
-#include "user_config.h"
 
-#include "freeRTOS_wrapper.h"
-#include "user_config.h"
-#include "ntp_time.h"
-#include "printer.h"
-#include "gpio_config.h"
-#include "data_base.h"
-#include "barras.h"
-#include "network.h"
-#include "MQTTEcho.h"
+#include "esp_common.h"
+
+//#include "freeRTOS_wrapper.h"
+//#include "user_config.h"
+//#include "ntp_time.h"
+//#include "printer.h"
+//#include "gpio_config.h"
+//#include "data_base.h"
+//#include "barras.h"
+//#include "network.h"
+//#include "MQTTEcho.h"
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -93,11 +92,12 @@ uint32 user_rf_cal_sector_set(void)
  void user_init(void)
 {
     //disable software watchdog
-    system_soft_wdt_feed();
+    //system_soft_wdt_feed();
 
     //Change BaudRate to 9600
     uart_user_init();
-
+    vTaskDelay(5000/portTICK_RATE_MS);
+    printf("User init\n");
     /******************************************************************************
      * FunctionName : GPIO_init
      * Description  : GPIOS are divided in Bars and printers
@@ -121,8 +121,8 @@ uint32 user_rf_cal_sector_set(void)
      * Description  : Bar check logic whith semaphores and timers. 
      * NTP_Request-->Semaphore 
      *******************************************************************************/
-    xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
-    vTaskDelay(100/portTICK_RATE_MS);
+    //xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
+    //vTaskDelay(100/portTICK_RATE_MS);
 
     /******************************************************************************
      * FunctionName : wifi_init
@@ -137,6 +137,5 @@ uint32 user_rf_cal_sector_set(void)
        /*wifi_init
 
     */
-    wifi_init();
-    
+    //wifi_init();
 }

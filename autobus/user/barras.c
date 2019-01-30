@@ -143,7 +143,7 @@ void obs_check_function (void)
 		xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
                       MQTT_CLIENT_THREAD_STACK_WORDS,
                       NULL,
-                      3,
+                      2,
                       &mqttc_client_handle);
 	}
 
