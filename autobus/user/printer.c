@@ -75,7 +75,6 @@ static void Centrar(uint8_t ok)
 		uart_tx_one_char(UART0,0x00);
 	}
 	vTaskDelay(100/portTICK_RATE_MS);
-	printf("\n\r");
 }
 static void Negritas(uint8_t enable)
 {
@@ -90,7 +89,6 @@ static void Negritas(uint8_t enable)
 		uart_tx_one_char(UART0,0x08);
     }
 	vTaskDelay(100/portTICK_RATE_MS);
-	printf("\r\n");
 }
 void FEED(uint8_t feeds)
 {
@@ -99,7 +97,7 @@ void FEED(uint8_t feeds)
 }
 void printer_print_TITLE(void)
 {
-	printf("%s",TITULO);/*9 bytes*/
+	printf("\r\n%s",TITULO);/*9 bytes*/
 }
 void printer_print_leftover(gpio_action_t ticket_recieved )
 {
