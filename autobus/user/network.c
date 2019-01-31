@@ -39,7 +39,7 @@ void network_init(System_Event_t *evt)
             printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
-           //os_timer_arm(&acces_point_config,10,0);  
+           os_timer_arm(&acces_point_config,10,0);  
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
             udpServer();//1024
@@ -144,7 +144,7 @@ void wifi_init(void)
     wifi_set_event_handler_cb(network_init);
 
     /*Timer set to callback a configuration fucntion*/
-    //os_timer_setfn(&acces_point_config,(os_timer_func_t *)conn_AP_Init, NULL);
+    os_timer_setfn(&acces_point_config,(os_timer_func_t *)conn_AP_Init, NULL);
 
     /*when connection is ready it will jump to the network_init callback*/
     wifi_station_connect();

@@ -28,7 +28,8 @@ uint32_t internal_timer;
 time_t current_time;
 time_t time_set;
 uint8_t time_match;
-uint16_t time_check;
+uint8_t review;
+uint8_t Command_check;
 int compare;
 
 void Time_check (void *pvParameters)
@@ -82,12 +83,13 @@ void Time_check (void *pvParameters)
 
 	while(1)
 	{
-		 vTaskDelay(1000/portTICK_RATE_MS);
-		 time_check++;
+		 vTaskDelay(250/portTICK_RATE_MS);
+		 review++;
 		 
-		 if(time_check == 10)// 10 secs
+		 if(review == 4)// 1 sec
 		 {
-			time_check=0;
+			Command_check += review; 
+			review = 0;
 			temporal = sntp_get_current_timestamp();
 			if(temporal == 0)
 		 	{
@@ -99,33 +101,34 @@ void Time_check (void *pvParameters)
 		 	}
 			time_set = internal_timer;
 		 	time_string = gmtime(&time_set);
-			if(time_string->tm_hour==hora && time_string->tm_min==min && time_to_send==false )
-			{
-				xTaskCreate(data_base_task,"data base",1024,NULL,2,xData_Base);
-				//KILll task when end
-				    /*
-    				This task manage all data between GPIOS printer and 
-					movments senors, to send it to TCP server.
-					Also recieved data from back sensor that are send it
-					by tcp client
-					*/
-				time_to_send = true;
-				///vTaskDelay(100000/portTICK_RATE_MS);
-			}
-			if(xQueueReceive(xQueueUart, &(mail_time), ( TickType_t ) 100) )
-			{
-				printf("rcv: %s",mail_time);
-				if(mail_time[0]=='m'&& mail_time[1]=='a'&&  mail_time[2]=='i' &&  mail_time[3]=='l' &&  mail_time[4]==':' )
+			
+			if(Command_check == 40) // each 10 seconds
+			{	
+				Command_check = 0;
+				if(time_string->tm_hour==hora && time_string->tm_min==min && time_to_send==false )
 				{
-				    hora = (mail_time[5]-0x30)*10 + (mail_time[6]-0x30);
-					min  = (mail_time[8]-0x30)*10 + (mail_time[9]-0x30);
-					printf("Time: %d:%d\r\n",hora,min);
+					xTaskCreate(data_base_task,"data base",1024,NULL,2,xData_Base);
+					//KILll task when end
+						/*
+						This task manage all data between GPIOS printer and 
+						movments senors, to send it to TCP server.
+						Also recieved data from back sensor that are send it
+						by tcp client
+						*/
+					time_to_send = true;
+					
+				}
+				if(xQueueReceive(xQueueUart, &(mail_time), ( TickType_t ) 100) )
+				{
+					printf("rcv: %s",mail_time);
+					if(mail_time[0]=='m'&& mail_time[1]=='a'&&  mail_time[2]=='i' &&  mail_time[3]=='l' &&  mail_time[4]==':' )
+					{
+						hora = (mail_time[5]-0x30)*10 + (mail_time[6]-0x30);
+						min  = (mail_time[8]-0x30)*10 + (mail_time[9]-0x30);
+						printf("Time: %d:%d\r\n",hora,min);
+					}
 				}
 			}
-		 }
-		 else
-		 {
-			internal_timer++;
 		 }
 		 if(NTP_Request!=NULL)
 		 {
@@ -135,7 +138,7 @@ void Time_check (void *pvParameters)
 				time_string = gmtime(&time_set);
 				if(time_state_queue!=NULL)
 				{
-					xQueueOverwrite(time_state_queue, &time_string);
+					xQueueSend(time_state_queue, ( void * ) &time_string,( portTickType ) 10);
 				}
 			 }
 		 }
