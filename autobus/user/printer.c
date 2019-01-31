@@ -103,15 +103,17 @@ void printer_print_TITLE(void)
 }
 void printer_print_leftover(gpio_action_t ticket_recieved )
 {
-	struct tm *  ntp_time_rcv = malloc(sizeof(ntp_time_rcv));
-	uint8_t valid;
+	//falta arreglar este queue
+	struct tm * ntp_time_rcv;
+
 	if(time_state_queue != NULL )
 	{
-		if(xQueueReceive(time_state_queue, ntp_time_rcv, ( TickType_t ) 100) )
+		if(xQueueReceive(time_state_queue, &(ntp_time_rcv), ( TickType_t ) 100) )
 		{
-			valid = sprintf(printer_time.hora,"%d:%d:%d\0",ntp_time_rcv->tm_hour,ntp_time_rcv->tm_min,ntp_time_rcv->tm_sec);
-			valid = sprintf(printer_time.fecha,"%d/%d/%d\0",ntp_time_rcv->tm_mday,(ntp_time_rcv->tm_mon)+1,(ntp_time_rcv->tm_year)%100);
+			sprintf(printer_time.hora,"%d:%d:%d\0",ntp_time_rcv->tm_hour,ntp_time_rcv->tm_min,ntp_time_rcv->tm_sec);
+			sprintf(printer_time.fecha,"%d/%d/%d\0",ntp_time_rcv->tm_mday,(ntp_time_rcv->tm_mon)+1,(ntp_time_rcv->tm_year)%100);
 		}
+
 	}
 		
 	 printf("%s",UNIDAD);/*14 bytes*/
@@ -139,7 +141,6 @@ void printer_print_leftover(gpio_action_t ticket_recieved )
 	 ticket_info.folio++;
 	 printf("Folio: %d",ticket_info.folio);/*11 bytes*/
 	 printf("\n\n");
-	 free(ntp_time_rcv);
 }
 void printer_task(void *pvParameters)
 {
@@ -156,7 +157,9 @@ void printer_task(void *pvParameters)
 	{
 		if(xSemaphoreTake(gpio_printer_semaphore, ( TickType_t ) 100 ) == pdTRUE)
 		{
+			/*check if semaphore is released*/
 			xSemaphoreGive(NTP_Request);
+
 			if(xQueueReceive(printer_state_queue, &(boleto), ( TickType_t ) 20) == pdPASS)
 			{ 
 				access = boleto;
