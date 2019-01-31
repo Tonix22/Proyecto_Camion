@@ -106,11 +106,13 @@ uart_rx_intr_handler_ssc(void *arg)
     }
     else
     {
+        memset(buffer,0,BUFFER_SIZE);
         char_number=0;
     }
     if(buffer[char_number]=='\n')
     {
         char_number=0;
+        memset(buffer,0,BUFFER_SIZE);
         xQueueSendFromISR(xQueueUart, &buffer,NULL); 
     }
     WRITE_PERI_REG(UART_INT_CLR(uart_no), UART_RXFIFO_FULL_INT_CLR);
