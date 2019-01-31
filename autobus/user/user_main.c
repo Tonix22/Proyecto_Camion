@@ -24,13 +24,13 @@
 
 #include "esp_common.h"
 
-//#include "freeRTOS_wrapper.h"
+#include "freeRTOS_wrapper.h"
 //#include "user_config.h"
 //#include "ntp_time.h"
 //#include "printer.h"
 //#include "gpio_config.h"
 //#include "data_base.h"
-//#include "barras.h"
+#include "barras.h"
 //#include "network.h"
 //#include "MQTTEcho.h"
 /******************************************************************************
@@ -121,8 +121,8 @@ uint32 user_rf_cal_sector_set(void)
      * Description  : Bar check logic whith semaphores and timers. 
      * NTP_Request-->Semaphore 
      *******************************************************************************/
-    //xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
-    //vTaskDelay(100/portTICK_RATE_MS);
+    xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
+    vTaskDelay(100/portTICK_RATE_MS);
 
     /******************************************************************************
      * FunctionName : wifi_init

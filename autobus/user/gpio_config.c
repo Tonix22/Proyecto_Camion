@@ -56,13 +56,13 @@ void io_intr_handler(void)
 	if (status & GPIO_Pin_10) 
 	{
 		action = barra_derecha;
-		//Release(gpio_bar_semaphore);
+		Release(gpio_bar_semaphore);
 		CLEAR_BAR_QUEUE;
 	}
 	if (status & GPIO_Pin_12) 
 	{
 		action = barra_izquierda;
-		//Release(gpio_bar_semaphore);
+		Release(gpio_bar_semaphore);
 		CLEAR_BAR_QUEUE;
 	}
 
