@@ -92,6 +92,5 @@ void user_init(void)
 	printf("Barras traseras\n");
 	GPIO_init();
     xTaskCreate(barras_traseras_task,"Barras traseras",1024,NULL,4,NULL);
-    vTaskDelay(1000/portTICK_RATE_MS);
 	wifi_Init();
 }
