@@ -44,6 +44,7 @@ typedef struct sockaddr_in sock_addr;
 
 unsigned char sendbuf[80];
 unsigned char readbuf[80];
+bool MQTT_READY ; 
 
 static barras_t Que_handler;
 static barras_t Data_Read;
@@ -60,7 +61,22 @@ void messageArrived(MessageData* data)
 void mqtt_client_thread(void* pvParameters)
 {
     rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
-    printf("Return code from network connect is %i\r\n", rc);
+    printf("NetworkConnect is %i\r\n", rc);
+    if(MQTT_READY == FALSE)
+    {
+        MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
+        connectData.username.cstring = AIO_USERNAME;
+        connectData.password.cstring = AIO_KEY;
+        connectData.MQTTVersion = 3;
+        connectData.clientID.cstring = "MyFirstMQTT";// HOW I WILL BE CALLED
+        rc = MQTTConnect(&client, &connectData);
+        printf("MQTTConnect is %i\r\n", rc);
+        if(rc ==0)
+        {
+            MQTT_READY = TRUE;
+        }
+    }
+
     if(rc == 0)
     {
 		if(xSemaphoreTake(MQTT_semaphore, ( TickType_t ) 1000 ) == pdTRUE)
@@ -81,33 +97,39 @@ void mqtt_client_thread(void* pvParameters)
                 message->payloadlen = strlen(payload);
 
                 number_to_string(Data_Read.subidas,payload);
-                printf("before update \n");
-                if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/subidas", message)) != 0) 
+
+                rc = MQTTPublish(&client, "EmilioTonix/feeds/subidas", message);
+
+                if (rc != 0) 
                 {
-                    printf("Return code from MQTT publish is %d\n", rc);
+                    printf("SUB NAK\r\n");
+                    MQTT_READY = FALSE;
                 } 
                 else 
                 {
-                    printf("MQTT publish topic \"EmilioTonix/feeds/subidas\", message number is %d\n", count);
+                    printf("SUB AKK\r\n");
                 }
-                printf("after update \n");
 
                 number_to_string(pasajeros,payload);
+                rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", message);
 
-                if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", message)) != 0) 
+                if (rc != 0) 
                 {
-                    printf("Return code from MQTT publish is %d\n", rc);
+                    printf("FEDD NAK\r\n");
+                    MQTT_READY = FALSE;
                 } 
                 else 
                 {
-                    printf("MQTT publish topic \"EmilioTonix/feeds/Pasajeros\", message number is %d\n", count);
+                    printf("FEED AKK\r\n");
                 }
+                
                 free(payload);
                 free(message);
-                //xSemaphoreGive(MQTT_semaphore);
+                xSemaphoreGive(MQTT_semaphore);
             }
         }
     }   
+        close(network.my_socket);
         vTaskDelete(mqttc_client_handle);
 }
 
@@ -133,7 +155,7 @@ int mqtt_init(void)
 {
     int ret;
     
-   /* MQTT_Queue     = xQueueCreate(1, sizeof(barras_t));
+    MQTT_Queue     = xQueueCreate(1, sizeof(barras_t));
     MQTT_semaphore = xSemaphoreCreateMutex();
     
     if ((NULL != MQTT_Queue) && (NULL != MQTT_semaphore) ) 
@@ -145,22 +167,12 @@ int mqtt_init(void)
 	{
 		// Return error 
 		printf("Mqtt sema and queue error\r\n");
-	}*/
+	}
     
     
-    static MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
-    connectData.username.cstring = AIO_USERNAME;
-	connectData.password.cstring = AIO_KEY;
-    connectData.MQTTVersion = 3;
-    connectData.clientID.cstring = "MyFirstMQTT";// HOW I WILL BE CALLED
-
     NetworkInit(&network);
 
     MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
-
-    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
-    printf("Return code from network connect is %i\r\n", rc);
-    close(network.my_socket);
 
    return ret;
 }
