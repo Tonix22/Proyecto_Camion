@@ -75,12 +75,8 @@ void Time_check (void *pvParameters)
 	while(temporal == 0);
 	internal_timer = temporal;
 
-	/****************************************************
-     ***********MQTT CONNECT INIT************************
-     ****************************************************/
-
-    //mqtt_init();
-
+	
+	vTaskDelay(100/portTICK_RATE_MS);
 	while(1)
 	{
 		 vTaskDelay(250/portTICK_RATE_MS);

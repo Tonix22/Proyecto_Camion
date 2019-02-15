@@ -24,13 +24,13 @@
 
 #include "barras.h"
 #include "MQTTEcho.h"
+#include "../../include/lwip/lwip/sockets.h"
+#include "../../include/lwip/lwip/netdb.h"
+#include "../../include/lwip/lwip/multi-threads/sockets_mt.h"
 
-
-
-
-#define MQTT_BROKER  "io.adafruit.com"  /* MQTT Broker Address*/
 #define MQTT_PORT    1883             /* MQTT Port*/
 
+char MQTT_BROKER[] = "io.adafruit.com\0";
 uint8_t AIO_USERNAME[]    =   "EmilioTonix";
 uint8_t AIO_KEY[]         =  "8281440a417b4e16be3b67ba126247d0";
 uint8_t PROV_NAME[]       = "MyFirstMQTT";
@@ -38,23 +38,31 @@ QueueHandle_t MQTT_Queue = NULL;
 SemaphoreHandle_t MQTT_semaphore = NULL;
 xTaskHandle mqttc_client_handle;
 
-const uint16_t Ten_pow[5]={1,10,100,1000,10000};
-static unsigned char sendbuf[80], readbuf[80] = {0};
+uint16_t Ten_pow[5]={1,10,100,1000,10000};
+
+typedef struct sockaddr_in sock_addr;
+
+unsigned char sendbuf[80];
+unsigned char readbuf[80];
+
 static barras_t Que_handler;
 static barras_t Data_Read;
 static uint16_t pasajeros;
-static MQTTClient client;
-static Network network;
-static int rc = 0, count = 0;
+MQTTClient client;
+int rc = 0, count = 0;
+Network network;
 
-
-static void messageArrived(MessageData* data)
+void messageArrived(MessageData* data)
 {
     printf("Message arrived: %s\n", data->message->payload);
 }
 
 void mqtt_client_thread(void* pvParameters)
 {
+    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
+    printf("Return code from network connect is %i\r\n", rc);
+    if(rc == 0)
+    {
 		if(xSemaphoreTake(MQTT_semaphore, ( TickType_t ) 1000 ) == pdTRUE)
         {
             if(xQueueReceive(MQTT_Queue, &(Que_handler), ( TickType_t ) 0) == pdPASS)
@@ -84,7 +92,6 @@ void mqtt_client_thread(void* pvParameters)
                 }
                 printf("after update \n");
 
-
                 number_to_string(pasajeros,payload);
 
                 if ((rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", message)) != 0) 
@@ -99,7 +106,8 @@ void mqtt_client_thread(void* pvParameters)
                 free(message);
                 //xSemaphoreGive(MQTT_semaphore);
             }
-        }   
+        }
+    }   
         vTaskDelete(mqttc_client_handle);
 }
 
@@ -116,11 +124,18 @@ static void number_to_string(uint16_t val,uint8_t *string)
     string[3] = (val%10)+0x30;
 }
 
-void mqtt_init(void)
+void mqtt_connect(void)
+{
+    
+}
+
+int mqtt_init(void)
 {
     int ret;
-    MQTT_Queue     = xQueueCreate(1, sizeof(barras_t));
+    
+   /* MQTT_Queue     = xQueueCreate(1, sizeof(barras_t));
     MQTT_semaphore = xSemaphoreCreateMutex();
+    
     if ((NULL != MQTT_Queue) && (NULL != MQTT_semaphore) ) 
 	{
         xSemaphoreTake( MQTT_semaphore, ( TickType_t ) 0 );
@@ -128,58 +143,24 @@ void mqtt_init(void)
 	} 
 	else 
 	{
-		/* Return error */
-		printf("Mqtt sema and queue erro\r\n");
-	}
+		// Return error 
+		printf("Mqtt sema and queue error\r\n");
+	}*/
     
-    char* address = malloc(sizeof(char)*16);
-    address = MQTT_BROKER;
-    printf("mqtt client thread starts\n");   
-    //pvParameters = 0;
-    MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
+    
+    static MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
+    connectData.username.cstring = AIO_USERNAME;
+	connectData.password.cstring = AIO_KEY;
+    connectData.MQTTVersion = 3;
+    connectData.clientID.cstring = "MyFirstMQTT";// HOW I WILL BE CALLED
+
     NetworkInit(&network);
 
     MQTTClientInit(&client, &network, 30000, sendbuf, sizeof(sendbuf), readbuf, sizeof(readbuf));
 
-    if ((rc = NetworkConnect(&network, address, MQTT_PORT)) != 0) 
-	{
-        printf("Return code from network connect is %d\n", rc);
-    }
+    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
+    printf("Return code from network connect is %i\r\n", rc);
+    close(network.my_socket);
 
-#if defined(MQTT_TASK)
-
-    if ((rc = MQTTStartTask(&client)) != pdPASS) 
-	{
-        printf("Return code from start tasks is %d\n", rc);
-    } 
-	else 
-	{
-        printf("Use MQTTStartTask\n");
-    }
-
-#endif
-
-	connectData.username.cstring = AIO_USERNAME;
-	connectData.password.cstring = AIO_KEY;
-    connectData.MQTTVersion = 3;
-    connectData.clientID.cstring = PROV_NAME;// HOW I WILL BE CALLED
-
-    if ((rc = MQTTConnect(&client, &connectData)) != 0) 
-	{
-        printf("Return code from MQTT connect is %d\n", rc);
-    } 
-	else 
-	{
-        printf("MQTT Connected\n");
-    }
-	
-    if ((rc = MQTTSubscribe(&client, "EmilioTonix/feeds/LED", 2, messageArrived)) != 0) 
-	{
-        printf("Return code from MQTT subscribe is %d\n", rc);
-    } 
-	else 
-	{
-        printf("MQTT subscribe to topic \"EmilioTonix/feeds/LED\"\n");
-    }
-
+   return ret;
 }

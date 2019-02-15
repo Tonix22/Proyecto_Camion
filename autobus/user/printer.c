@@ -58,9 +58,7 @@ void printer_init(void)
 	printf("%s",Printer_Start);
 	vTaskDelay(10/portTICK_RATE_MS);
 	UART_SetPrintPort(UART0);
-	
-	xTaskCreate(printer_task, "Printer Task", 512, NULL, 3, NULL );
-    printf("printer task created\r\n");
+
 }
 static void Centrar(uint8_t ok)
 {
@@ -151,6 +149,7 @@ void printer_task(void *pvParameters)
 	sprintf(printer_time.fecha,"dd/mm/aa");
 
 	ticket_info.folio=-1;
+
 	while(1)
 	{
 		if(xSemaphoreTake(gpio_printer_semaphore, ( TickType_t ) 100 ) == pdTRUE)

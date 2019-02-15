@@ -8,6 +8,6 @@
 
 static void messageArrived(MessageData* data);
 void mqtt_client_thread(void* pvParameters);
-void mqtt_init(void);
+int mqtt_init(void);
 static void number_to_string(uint16_t val,uint8_t *string);
 #endif

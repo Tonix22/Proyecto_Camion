@@ -57,10 +57,11 @@ LINKFLAGS_eagle.app.v6 =    \
     -Wl,-static             \
     -Wl,--start-group       \
     -lcirom                 \
-    -lgcc                   \
-    -lhal                   \
     -lcrypto                \
     -lfreertos              \
+    -lgcc                   \
+    -lhal                   \
+
     -llwip                  \
     -lmain                  \
     -lnet80211              \

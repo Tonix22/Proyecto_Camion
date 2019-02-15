@@ -182,28 +182,37 @@ void NetworkInit(Network* n)
 
 int NetworkConnect(Network* n, char* addr, int port)
 {
-    struct sockaddr_in sAddr;
     int retVal = -1;
-    struct hostent* ipAddress;
 
-    if ((ipAddress = gethostbyname(addr)) == 0) {
-        goto exit;
+    struct sockaddr_in* sAddr = malloc(sizeof(struct sockaddr_in));
+    struct hostent* ipAddress = malloc(sizeof(struct hostent));
+
+    ipAddress = gethostbyname(addr);
+    printf("hostname lenght: %d \r\n",ipAddress->h_length);
+
+    if (ipAddress->h_name != NULL) 
+    {
+        sAddr->sin_family = AF_INET;
+        sAddr->sin_addr.s_addr = ((struct in_addr*)(ipAddress->h_addr))->s_addr;
+        sAddr->sin_port = htons(port);
+
+        printf("sAddr->sin_port: %d \r\n",sAddr->sin_port);
     }
 
-    sAddr.sin_family = AF_INET;
-    sAddr.sin_addr.s_addr = ((struct in_addr*)(ipAddress->h_addr))->s_addr;
-    sAddr.sin_port = htons(port);
+    n->my_socket = socket(AF_INET, SOCK_STREAM, 0);
+    printf("n->my_socket: %d\r\n", n->my_socket);
 
-    if ((n->my_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        goto exit;
+    if (n->my_socket == 0) 
+    {
+        retVal = connect(n->my_socket, (struct sockaddr*)sAddr, sizeof(struct sockaddr_in));
+        printf("connect: %d \r\n",retVal);
     }
-
-    if ((retVal = connect(n->my_socket, (struct sockaddr*)&sAddr, sizeof(sAddr))) < 0) {
+     
+    if (retVal < 0) 
+    {
+        printf("closing socket\r\n");
         close(n->my_socket);
-        goto exit;
     }
-
-exit:
     return retVal;
 }
 

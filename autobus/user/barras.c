@@ -47,6 +47,11 @@ void barras_delanteras_task(void *pvParameters)
 	Set_timer(obs_check,obs_check_function);
 	printf("barras_system_init\r\n");
 	
+	while(gpio_bar_semaphore == NULL)
+	{
+		vTaskDelay(1000/portTICK_RATE_MS);
+	}
+
 	while(1)
 	{
 		if(xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 100 ) == pdTRUE)
