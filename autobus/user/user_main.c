@@ -21,19 +21,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
- 
+
 #include "esp_common.h"
-#include "user_config.h"
 
 #include "freeRTOS_wrapper.h"
-#include "user_config.h"
+//#include "user_config.h"
 #include "ntp_time.h"
 #include "printer.h"
-#include "gpio_config.h"
-#include "data_base.h"
+//#include "gpio_config.h"
+//#include "data_base.h"
 #include "barras.h"
 #include "network.h"
-#include "MQTTEcho.h"
+//#include "MQTTEcho.h"
+
+
+extern bool network_sucess;
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -46,6 +48,9 @@
  * Parameters   : none
  * Returns      : rf cal sector
 *******************************************************************************/
+
+
+
 uint32 user_rf_cal_sector_set(void)
 {
     flash_size_map size_map = system_get_flash_size_map();
@@ -82,7 +87,62 @@ uint32 user_rf_cal_sector_set(void)
 
     return rf_cal_sec;
 }
+void services_thread(void* pvParameters)
+{
+    bool NET_START = TRUE;
+    uint8_t try;
 
+    vTaskDelay(10000/portTICK_RATE_MS);
+
+    while(try<5 && NET_START == TRUE)
+    {
+        if(network_sucess == TRUE)
+        {
+            /****************************************************
+            ***********MQTT CONNECT INIT************************
+            ****************************************************/
+
+            mqtt_init();
+            NET_START = FALSE;
+            printf("MQTT INIT WELL\r\n");
+
+            /****************************************************
+            ***********NTP SERVER TASK INIT*********************
+            ****************************************************/
+            xTaskCreate(Time_check,"ntp server",1024,NULL,1,NULL);
+            /****************************************************/
+        }
+        else
+        {
+            vTaskDelay(2000/portTICK_RATE_MS);
+             try++;
+        }
+
+    }
+    if(try == 5)
+    {
+        printf("NET services Fail\r\n");
+    }
+    /******************************************************************************
+     * FunctionName : printer task
+     * Description  : print ticket info 
+     * NTP_Request-->Semaphore 
+     *******************************************************************************/
+
+    xTaskCreate(printer_task, "Printer Task", 1024, NULL, 3, NULL );
+    vTaskDelay(500/portTICK_RATE_MS);
+
+    /******************************************************************************
+     * FunctionName : barras_delanteras_task
+     * Description  : Bar check logic whith semaphores and timers. 
+     * NTP_Request-->Semaphore 
+     *******************************************************************************/
+    xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
+    vTaskDelay(500/portTICK_RATE_MS);
+
+    
+    vTaskDelete(NULL);
+}
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here
@@ -93,36 +153,29 @@ uint32 user_rf_cal_sector_set(void)
  void user_init(void)
 {
     //disable software watchdog
-    system_soft_wdt_feed();
+    //system_soft_wdt_feed();
 
     //Change BaudRate to 9600
     uart_user_init();
+    vTaskDelay(2000/portTICK_RATE_MS);
 
+    printf("User init\n");
     /******************************************************************************
      * FunctionName : GPIO_init
      * Description  : GPIOS are divided in Bars and printers
      * GPIO 12, 10 --> BARS [DER,IZQ]
      * GPIO 0,4,5  -->[NORMAL,MITAD,TRANSVALE]
      *******************************************************************************/
-
     GPIO_init();
-	vTaskDelay(100/portTICK_RATE_MS);
 
     /******************************************************************************
      * FunctionName : printer_init
      * Description  : Initialize UART1, and create printer task
      * NTP_Request-->Semaphore 
      *******************************************************************************/
-
 	printer_init();
 
-    /******************************************************************************
-     * FunctionName : barras_delanteras_task
-     * Description  : Bar check logic whith semaphores and timers. 
-     * NTP_Request-->Semaphore 
-     *******************************************************************************/
-    xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
-    vTaskDelay(100/portTICK_RATE_MS);
+    xTaskCreate(services_thread,"services_thread",2048,NULL,6,NULL);
 
     /******************************************************************************
      * FunctionName : wifi_init

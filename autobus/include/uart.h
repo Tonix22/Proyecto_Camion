@@ -28,7 +28,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 15
 #define ETS_UART_INTR_ENABLE()  _xt_isr_unmask(1 << ETS_UART_INUM)
 #define ETS_UART_INTR_DISABLE() _xt_isr_mask(1 << ETS_UART_INUM)
 #define UART_INTR_MASK          0x1ff
@@ -131,7 +131,7 @@ typedef struct {
 /** @addtogroup UART_Driver_APIs
   * @{
   */
-
+int uart_tx_one_char(uint8 uart, uint8 TxChar);
 /**  
   * @brief   Wait uart tx fifo empty, do not use it if tx flow control enabled.
   * 

@@ -5,6 +5,7 @@
 #include "freeRTOS_wrapper.h"
 #include "barras.h"
 #include "data_base.h"
+#include "MQTTEcho.h"
 
 #define ON 	1
 #define OFF 0
@@ -14,6 +15,7 @@
 
 extern QueueHandle_t bar_state_queue;
 extern SemaphoreHandle_t gpio_bar_semaphore;
+extern xTaskHandle mqttc_client_handle;
 
 static bool subir_flag    = false;
 static bool bajar_flag    = false;
@@ -45,6 +47,11 @@ void barras_delanteras_task(void *pvParameters)
 	Set_timer(obs_check,obs_check_function);
 	printf("barras_system_init\r\n");
 	
+	while(gpio_bar_semaphore == NULL)
+	{
+		vTaskDelay(1000/portTICK_RATE_MS);
+	}
+
 	while(1)
 	{
 		if(xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 100 ) == pdTRUE)
@@ -138,6 +145,11 @@ void obs_check_function (void)
 	if(MQTT_semaphore!=NULL)
 	{
 		xSemaphoreGive(MQTT_semaphore);
+		xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
+                      MQTT_CLIENT_THREAD_STACK_WORDS,
+                      NULL,
+                      2,
+                      &mqttc_client_handle);
 	}
 
 	

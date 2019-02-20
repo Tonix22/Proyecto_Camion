@@ -13,13 +13,13 @@ void printer_init(void);
 static void Centrar(uint8_t ok);
 static void Negritas(uint8_t enable);
 void FEED(uint8_t feeds);
-void printer_print_TITLE(void *arg);
+void printer_print_TITLE(void);
 void printer_print_leftover(gpio_action_t ticket_type );
 void printer_task(void *pvParameters);
 typedef struct
 {
-	uint8_t hora[9];
-	uint8_t fecha[9];
+	char *hora;
+	char *fecha;
 }ticket_time;
 #endif /* INCLUDE_PRINTER_H_ */
 

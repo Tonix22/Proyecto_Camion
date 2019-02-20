@@ -3,13 +3,15 @@
 #include "ntp_time.h"
 #include "Tcp_mail.h"
 #include "udp_client.h"
+#include "MQTTEcho.h"
 
 #define SOFT_AP_SSID      "central_comunication"
 #define SOFT_AP_PASSWORD  "12345678"
 #define DEVICES_CAPACITY 4
 static void conn_AP_Init(void);
 os_timer_t acces_point_config;
-
+os_timer_t MQTT_timer;
+bool network_sucess = false;
 /******************************************************************************
  * FunctionName : network_init
  * Description  : Call back for different wifi situations
@@ -21,7 +23,8 @@ void network_init(System_Event_t *evt)
     if (evt == NULL) {
         return;
     }
-    switch (evt->event_id) {
+    switch (evt->event_id) 
+    {
         case EVENT_STAMODE_CONNECTED:
             printf("connect to ssid %s, channel %d\n", evt->event_info.connected.ssid,
                     evt->event_info.connected.channel);
@@ -37,11 +40,11 @@ void network_init(System_Event_t *evt)
             printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
+            network_sucess = true;
            os_timer_arm(&acces_point_config,10,0);  
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
             udpServer();//1024
-            
             printf("station: " MACSTR "join, AID = %d\n", MAC2STR(evt->event_info.sta_connected.mac),
                     evt->event_info.sta_connected.aid);
             break;
@@ -112,13 +115,9 @@ static void conn_AP_Init(void)
         printf("DCHP fail\r\n");
     }
     
-    /****************************************************
-     ***********NTP SERVER TASK INIT*********************
-     ****************************************************/
-    xTaskCreate(Time_check,"ntp server",512,NULL,3,NULL);
-    /****************************************************/
 
 }
+
 /******************************************************************************
  * FunctionName : wifi_init
  * Description  : Initialize the wifi conection as station and access point.
@@ -147,4 +146,5 @@ void wifi_init(void)
 
     /*when connection is ready it will jump to the network_init callback*/
     wifi_station_connect();
+
 }

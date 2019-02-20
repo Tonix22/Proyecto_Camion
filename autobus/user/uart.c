@@ -42,8 +42,7 @@ uint8_t buffer[BUFFER_SIZE];
 xTaskHandle xUartTaskHandle;
 xQueueHandle xQueueUart;
 
-LOCAL STATUS
-uart_tx_one_char(uint8 uart, uint8 TxChar)
+int uart_tx_one_char(uint8 uart, uint8 TxChar)
 {
     while (true) {
         uint32 fifo_cnt = READ_PERI_REG(UART_STATUS(uart)) & (UART_TXFIFO_CNT << UART_TXFIFO_CNT_S);
@@ -54,7 +53,7 @@ uart_tx_one_char(uint8 uart, uint8 TxChar)
     }
 
     WRITE_PERI_REG(UART_FIFO(uart) , TxChar);
-    return OK;
+    return 0;
 }
 
 LOCAL void
@@ -107,11 +106,13 @@ uart_rx_intr_handler_ssc(void *arg)
     }
     else
     {
+        memset(buffer,0,BUFFER_SIZE);
         char_number=0;
     }
     if(buffer[char_number]=='\n')
     {
         char_number=0;
+        memset(buffer,0,BUFFER_SIZE);
         xQueueSendFromISR(xQueueUart, &buffer,NULL); 
     }
     WRITE_PERI_REG(UART_INT_CLR(uart_no), UART_RXFIFO_FULL_INT_CLR);
