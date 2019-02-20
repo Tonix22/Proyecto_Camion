@@ -74,6 +74,9 @@ uint8 Gyroscope_Z2;
  * Parameters   : none
  * Returns      : rf cal sector
 *******************************************************************************/
+
+
+
 uint32 user_rf_cal_sector_set(void)
 {
     flash_size_map size_map = system_get_flash_size_map();
@@ -97,7 +100,12 @@ uint32 user_rf_cal_sector_set(void)
         case FLASH_SIZE_32M_MAP_1024_1024:
             rf_cal_sec = 1024 - 5;
             break;
-
+        case FLASH_SIZE_64M_MAP_1024_1024:
+            rf_cal_sec = 2048 - 5;
+            break;
+        case FLASH_SIZE_128M_MAP_1024_1024:
+            rf_cal_sec = 4096 - 5;
+            break;
         default:
             rf_cal_sec = 0;
             break;
@@ -107,12 +115,7 @@ uint32 user_rf_cal_sector_set(void)
 }
 void i2c_test_task(void* pvParameters)
 {
-    while (1) 
-    {
-        vTaskDelay(1000);  //Delay for 200milli seconds
-        printf("start i2c task");
-    }
-    /*i2c_master_gpio_init();
+    i2c_master_gpio_init();
     i2c_master_start();
 
     //7 bit Address + LSB=0 for write command
@@ -189,7 +192,7 @@ void i2c_test_task(void* pvParameters)
         printf("Gyy :%d\n", Gyy);
         printf("Gyz :%d\n", Gyz);
         vTaskDelay(200);  //Delay for 200milli seconds
-    }*/
+    }
     vTaskDelete(NULL);
 }
 
@@ -202,5 +205,5 @@ void i2c_test_task(void* pvParameters)
 void user_init(void)
 {
    printf("main.c\r\n");
-xTaskCreate(i2c_test_task, "user_start_tx_task", 256, NULL, 3, NULL);
+   xTaskCreate(i2c_test_task, "user_start_tx_task", 256, NULL, 3, NULL);
 } 
