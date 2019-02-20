@@ -26,6 +26,7 @@
 #include "esp_common.h"
 #include "gpio.h"
 #include "i2c_master.h"
+#include "freeRTOS_wrapper.h"
 
 #define mpu6050 0x68
 
@@ -104,11 +105,14 @@ uint32 user_rf_cal_sector_set(void)
 
     return rf_cal_sec;
 }
-
-void i2c_test_task()
+void i2c_test_task(void* pvParameters)
 {
-
-    i2c_master_gpio_init();
+    while (1) 
+    {
+        vTaskDelay(1000);  //Delay for 200milli seconds
+        printf("start i2c task");
+    }
+    /*i2c_master_gpio_init();
     i2c_master_start();
 
     //7 bit Address + LSB=0 for write command
@@ -126,7 +130,8 @@ void i2c_test_task()
     i2c_master_stop();
     i2c_master_start();
 
-    while (1) {
+    while (1) 
+    {
         i2c_master_writeByte(0x68 << 1 | 0);
         Acknowledge = i2c_master_getAck();
         i2c_master_writeByte(0x3B);
@@ -184,7 +189,7 @@ void i2c_test_task()
         printf("Gyy :%d\n", Gyy);
         printf("Gyz :%d\n", Gyz);
         vTaskDelay(200);  //Delay for 200milli seconds
-    }
+    }*/
     vTaskDelete(NULL);
 }
 
@@ -196,6 +201,6 @@ void i2c_test_task()
 *******************************************************************************/
 void user_init(void)
 {
-	xTaskCreate(i2c_test_task, "user_start_tx_task", 200, NULL, 3, NULL);
-
+   printf("main.c\r\n");
+xTaskCreate(i2c_test_task, "user_start_tx_task", 256, NULL, 3, NULL);
 } 

@@ -23,7 +23,7 @@ GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
 	user    \
-       driver	
+    driver	
 	
 
 endif # } PDIR
