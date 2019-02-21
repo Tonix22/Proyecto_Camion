@@ -25,5 +25,8 @@
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
 
+#define SSID "HOME-5818"
+#define PASS "C900797AAD34D8AB"
+
 #endif
 

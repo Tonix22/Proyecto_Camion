@@ -80,7 +80,8 @@ void scan_done(void *arg, STATUS status)
     printf("now doing the scan_done... \n");
     uint8 ssid[33];
     char temp[128];
-    if (status == OK) {
+    if (status == OK) 
+    {
         struct bss_info *bss_link = (struct bss_info *) arg;
         while (bss_link != NULL) {
             memset(ssid, 0, 33);
@@ -92,9 +93,12 @@ void scan_done(void *arg, STATUS status)
                     MAC2STR(bss_link->bssid), bss_link->channel);
             bss_link = bss_link->next.stqe_next;
         }
-    } else {
+    } 
+    else 
+    {
         printf("scan fail !!!\r\n");
     }
+    wifi_init();
 }
 
 void scan_ap_init(void)
