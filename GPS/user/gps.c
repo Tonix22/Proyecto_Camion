@@ -28,6 +28,10 @@ char lat[30]={0};
 char lon[30]={0};
 char range_error[20]={0};
 
+uint8 webname[] = {"api.mylnikov.org"};
+
+uint8 MAC_ADDRES[10][20];
+
 typedef enum {
   IDLE,
   INIT,
@@ -46,8 +50,9 @@ void get_cordanates(void *pvParameters)
     int sta_socket;
     char recv_buf[1460];
 	uint8_t BINARY	  =   0;
-    uint8 MAC_add[] = {"d8:37:be:da:41:ff"};
-    uint8 webname[] = {"api.mylnikov.org"};
+    //uint8 MAC_add[] = {"d8:37:be:da:41:ff"};
+    uint8 *MAC_add = MAC_ADDRES[1];
+    printf("MAC: %s\n",MAC_ADDRES);
     struct sockaddr_in remote_ip;
     //while (1) 
 	//{
@@ -92,8 +97,6 @@ void get_cordanates(void *pvParameters)
 
         recbytes = read(sta_socket, recv_buf, 1460);
         get_data(recv_buf);
-        printf("recbytes = %d\n", recbytes);
-        printf("data rcv: %s\r\n",JSON_DATA);
         Parser(JSON_DATA);
 
         if (recbytes < 0) 
@@ -224,7 +227,6 @@ void Parser(char *word)
         
         i++;
     }
-    
     printf("%s\n",result);
     printf("%s\n",lat );
     printf("%s\n",lon );
