@@ -31,6 +31,7 @@ char range_error[20]={0};
 uint8 webname[] = {"api.mylnikov.org"};
 
 uint8 MAC_ADDRES[10][20];
+uint8 MAC_SIZE;
 
 typedef enum {
   IDLE,
@@ -50,13 +51,14 @@ void get_cordanates(void *pvParameters)
     int sta_socket;
     char recv_buf[1460];
 	uint8_t BINARY	  =   0;
-    //uint8 MAC_add[] = {"d8:37:be:da:41:ff"};
-    uint8 *MAC_add = MAC_ADDRES[1];
-    printf("MAC: %s\n",MAC_ADDRES);
     struct sockaddr_in remote_ip;
-    //while (1) 
-	//{
+    uint8_t i;
+    //uint8 MAC_add[] = {"d8:37:be:da:41:ff"};    
+    while (i<MAC_SIZE) 
+	{
         //CHECK SOCKET STATUS
+        uint8 *MAC_add = MAC_ADDRES[i];
+        printf("MAC: %s\n",MAC_add);
         sta_socket = socket(PF_INET, SOCK_STREAM, 0);
         if (-1 == sta_socket) 
 		{
@@ -90,11 +92,9 @@ void get_cordanates(void *pvParameters)
             free(pbuf);
         }
         printf("send success\n");
+        //printf("%s",pbuf);
         free(pbuf);
 		//HERE GET THE HTTP PACKETS AND SAVE IT INTO THE FLASH IN ORDER TO LATER BOOT
-        int i = 0;
-        int size = 0;
-
         recbytes = read(sta_socket, recv_buf, 1460);
         get_data(recv_buf);
         Parser(JSON_DATA);
@@ -104,7 +104,8 @@ void get_cordanates(void *pvParameters)
             printf("read data fail!\r\n");
             close(sta_socket);
         }
-   // }
+        i++;
+    }
    vTaskDelete(NULL);
 }
 void get_data(char* info)

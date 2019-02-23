@@ -40,7 +40,7 @@
  * Returns      : rf cal sector
 *******************************************************************************/
 extern uint8 MAC_ADDRES[10][20];
-
+extern MAC_SIZE;
 uint32 user_rf_cal_sector_set(void)
 {
     flash_size_map size_map = system_get_flash_size_map();
@@ -101,6 +101,7 @@ void scan_done(void *arg, STATUS status)
             printf("MAC: %s\r\n",MAC_ADDRES[i]);
             bss_link = bss_link->next.stqe_next;
             i++;
+            MAC_SIZE++;
         }
     } 
     else 
