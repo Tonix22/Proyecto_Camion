@@ -19,8 +19,25 @@ Accept-Language: es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6\r\n\r\n"
 #define DEMO_SERVER "104.31.85.110"
 #define DEMO_SERVER_PORT 80
 
-char JSON_DATA[200];
 void get_data(char* info);
+void Parser(char *word);
+
+char JSON_DATA[200];
+char result[20]={0};
+char lat[30]={0};
+char lon[30]={0};
+char range_error[20]={0};
+
+typedef enum {
+  IDLE,
+  INIT,
+  BRACKET,
+  LAT,
+  LON,
+  ERR,
+  COMMA,
+  END
+} parse_state ;
 
 void get_cordanates(void *pvParameters)
 {
@@ -29,7 +46,7 @@ void get_cordanates(void *pvParameters)
     int sta_socket;
     char recv_buf[1460];
 	uint8_t BINARY	  =   0;
-    uint8 MAC_add[] = {"4c:54:99:94:d4:30"};
+    uint8 MAC_add[] = {"d8:37:be:da:41:ff"};
     uint8 webname[] = {"api.mylnikov.org"};
     struct sockaddr_in remote_ip;
     //while (1) 
@@ -77,6 +94,7 @@ void get_cordanates(void *pvParameters)
         get_data(recv_buf);
         printf("recbytes = %d\n", recbytes);
         printf("data rcv: %s\r\n",JSON_DATA);
+        Parser(JSON_DATA);
 
         if (recbytes < 0) 
 		{
@@ -117,4 +135,98 @@ void get_data(char* info)
         }
         i++;
     }
+}
+void Parser(char *word)
+{
+    short i = 0;
+    short j=0;
+    parse_state state = IDLE;
+    while(state !=END)
+    {
+        if(word[i]=='{' && state==IDLE)
+        {
+            state = INIT;
+            i++;
+        }
+        if(state == INIT)
+        {
+            if(word[i]!=',')
+            {
+               result[j]=word[i];
+               j++;
+            }
+            else
+            {
+                j=0;
+                state = BRACKET;
+            }
+        }
+        
+        if(state == BRACKET)
+        {
+            if(word[i]=='{')
+            {
+                state = LAT;
+                i++;
+            }
+        }
+        
+        if(state == LAT)
+        {
+            if(word[i]!=',')
+            {
+                if(word[i]!=' ')
+                {
+                    lat[j]=word[i];
+                    j++;
+                }
+            }
+            else
+            {
+                j=0;
+                i++;
+                state = ERR;
+            }
+        }
+        if(state==ERR)
+        {
+            if(word[i]!=',')
+            {
+                if(word[i]!=' ')
+                {
+                    range_error[j]=word[i];
+                    j++;
+                }
+            }
+            else
+            {
+                range_error[j]=' ';
+                range_error[j+1]='m';
+                j=0;
+                i++;
+                state = LON;
+            }
+        }
+
+        if(state == LON)
+        {
+            if(word[i]==',')
+            {
+                j=0;
+                state = END;
+            }
+            if(word[i]!=' ' && word[i]!='}' && state !=END)
+            {
+                lon[j]=word[i];
+                j++;
+            }
+        }
+        
+        i++;
+    }
+    
+    printf("%s\n",result);
+    printf("%s\n",lat );
+    printf("%s\n",lon );
+    printf("%s\n",range_error);
 }
