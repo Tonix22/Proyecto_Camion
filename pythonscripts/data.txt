@@ -1,0 +1,115 @@
+now entering the scan AP test.....
+scandone
+now doing the scan_done...
+(4,"HOME-5818",-51,"44:32:c8:c6:58:18",1)
+
+
+
+MAC: 44:32:c8:c6:58:18
+
+(4,"Totalplay-8F79",-76,"48:43:5a:0a:00:9c",2)
+
+
+
+MAC: 48:43:5a:0a:00:9c
+
+(1,"SOFIA1",-81,"d8:37:be:d8:91:3f",6)
+
+
+
+MAC: d8:37:be:d8:91:3f
+
+(4,"dlink",-68,"fc:75:16:9d:1b:e4",8)
+
+
+
+MAC: fc:75:16:9d:1b:e4
+
+(3,"TOTALPLAY_ED1F98",-48,"18:90:d8:ed:1f:98",11)
+
+
+
+MAC: 18:90:d8:ed:1f:98
+
+bcn 0
+del if1
+pm open phy_2,type:2 0 0
+mode : sta(5c:cf:7f:6f:f2:e3)
+sl
+usl
+sul 7 0
+scandone
+usl
+sul 7 0
+ip:10.0.0.5,mask:255.255.255.0,gw:10.0.0.1
+ip:10.0.0.5,mask:255.255.255.0,gw:10.0.0.1
+MAC: 44:32:c8:c6:58:18
+socket ok!
+
+connect ok!
+
+send success
+"result":200
+"lat":39.5422284964
+"lon":-104.93589214824
+"range":42.075 m
+MAC: 48:43:5a:0a:00:9c
+socket ok!
+
+connect ok!
+
+send success
+"result":200
+"lat":47.14499226718
+"lon":8.15515008778824
+"range":85.117 m
+MAC: d8:37:be:d8:91:3f
+socket ok!
+
+connect ok!
+
+send success
+"result":200
+"lat":20.62203826939
+"lon":-103.41370487053
+"range":55.413 m
+MAC: fc:75:16:9d:1b:e4
+
+send success
+"result":200
+"lat":20.62312217198
+"lon":-103.41364225661
+"range":20.609 m
+
+Casa miriam
+
+(4,"Totalplay-669D",-55,"3c:78:43:e7:ca:bc",1)
+
+MAC: 3c:78:43:e7:ca:bc
+(1,"INFINITUMEABE48",-73,"00:24:17:3c:89:1f",1)
+
+MAC: 00:24:17:3c:89:1f
+(3,"PS4-0E181296F256",-72,"e8:61:7e:73:2f:81",6)
+
+MAC: e8:61:7e:73:2f:81
+(3,"ARRIS-A412",-70,"c8:3f:b4:81:a4:10",6)
+
+MAC: c8:3f:b4:81:a4:10
+(3,"AndroidAP",-73,"02:08:22:66:ac:fc",6)
+
+MAC: 02:08:22:66:ac:fc
+(4,"Totalplay-CC9C",-68,"a4:be:2b:ea:f7:6c",8)
+
+MAC: a4:be:2b:ea:f7:6c
+(4,"INFINITUMp7fh",-75,"78:f5:fd:b9:42:ec",8)
+
+MAC: 78:f5:fd:b9:42:ec
+(4,"INFINITUMlzlg",-70,"f8:3d:ff:7a:79:48",8)
+
+MAC: f8:3d:ff:7a:79:48
+(4,"Alexischido",-73,"34:6a:c2:b0:d8:e4",1)
+
+MAC: 34:6a:c2:b0:d8:e4
+(4,"Totalplay-FD9A",-73,"f4:4c:7f:90:d4:e0",10)
+
+3c:78:43:e7:ca:bc,-55;00:24:17:3c:89:1f,-73,e8:61:7e:73:2f:81,-72,c8:3f:b4:81:a4:10,-70,02:08:22:66:ac:fc,-73,a4:be:2b:ea:f7:6c,-68
