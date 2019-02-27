@@ -17,6 +17,9 @@ Accept-Language: es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6\r\n\r\n"
 void get_cordanates(void *pvParameters);
 void get_data(char* info);
 void Parser(char *word);
+int32_t string_to_int(char* string);
+bool Parse_Result(char* str);
+
 
 typedef enum {
   IDLE,
@@ -26,6 +29,8 @@ typedef enum {
   LON,
   ERR,
   COMMA,
+  DOT,
+  DOBLE_DOT,
   END
 } parse_state ;
 

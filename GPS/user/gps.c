@@ -231,6 +231,45 @@ void Parser(char *word)
     printf("%s\n",lon );
     printf("%s\n",range_error);
 }
+bool Parse_Result(char* str)
+{
+    uint8_t i;
+    uint8_t data_len;
+    parse_state state = IDLE;
+    uint8_t data[3];
+    int32_t assigned_value;
+    while(state !=END)
+    {
+        if(str[i]==':')
+        {
+            state = DOBLE_DOT;
+        }
+        if(state == DOBLE_DOT)
+        {
+            data[i];
+            data_len++;
+            if(data_len == 3)
+            {
+                state= END;
+            }
+        }
+        i++;
+    }
+    assigned_value = string_to_int(data);
+    if(assigned_value == 200)
+    {
+        return true;
+    }
+    if(assigned_value == 400)
+    {
+        return false;
+    }
+    return false;
+}
+void Parse_Cordenate(char* str)
+{
+
+}
 int32_t string_to_int(char* string)
 {
     bool sign = false;
