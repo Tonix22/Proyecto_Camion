@@ -40,6 +40,7 @@
  * Returns      : rf cal sector
 *******************************************************************************/
 extern uint8 MAC_ADDRES[10][20];
+extern char RSSI[10];
 extern MAC_SIZE;
 uint32 user_rf_cal_sector_set(void)
 {
@@ -98,10 +99,12 @@ void scan_done(void *arg, STATUS status)
                     MAC2STR(bss_link->bssid), bss_link->channel);
 
             sprintf(MAC_ADDRES[i],MACSTR,MAC2STR(bss_link->bssid));
-            printf("MAC: %s\r\n",MAC_ADDRES[i]);
+            RSSI[i]=(char)bss_link->rssi;
+            MAC_SIZE++;
+
             bss_link = bss_link->next.stqe_next;
             i++;
-            MAC_SIZE++;
+            
         }
     } 
     else 
