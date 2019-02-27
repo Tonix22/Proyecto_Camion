@@ -5,22 +5,10 @@
 #include "lwip/inet.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "gps.h"
 
 
-#define pheadbuffer "Connection: keep-alive\r\n\
-Cache-Control: max-age=0\r\n\
-Upgrade-Insecure-Requests: 1\r\n\
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36 \r\n\
-DNT: 1\r\n\
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\n\
-Accept-Encoding: deflate\r\n\
-Accept-Language: es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6\r\n\r\n"
-
-#define DEMO_SERVER "104.31.85.110"
-#define DEMO_SERVER_PORT 80
-
-void get_data(char* info);
-void Parser(char *word);
+uint32_t ten[]={1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000};
 
 char JSON_DATA[200];
 char result[20]={0};
@@ -29,20 +17,25 @@ char lon[30]={0};
 char range_error[20]={0};
 
 uint8 webname[] = {"api.mylnikov.org"};
-
+//source data 
 uint8 MAC_ADDRES[10][20];
+char RSSI[10];
 uint8 MAC_SIZE;
 
-typedef enum {
-  IDLE,
-  INIT,
-  BRACKET,
-  LAT,
-  LON,
-  ERR,
-  COMMA,
-  END
-} parse_state ;
+//decimal part
+    //constants
+int16_t set_lat = 20;
+int16_t set_long = -103;
+    //if contants not matches data is ignored, this may vary in each city
+//variables
+uint8_t decimal_index; // array index
+//for data filter
+int16_t integer_lat;
+int16_t integer_lon;
+//data get by strings
+uint32_t decimal_lat[10];
+uint32_t decimal_log[10];
+
 
 void get_cordanates(void *pvParameters)
 {
@@ -53,12 +46,16 @@ void get_cordanates(void *pvParameters)
 	uint8_t BINARY	  =   0;
     struct sockaddr_in remote_ip;
     uint8_t i;
-    //uint8 MAC_add[] = {"d8:37:be:da:41:ff"};    
+    uint8 *MAC_add;   
     while (i<MAC_SIZE) 
 	{
+        memset(result,'\0',sizeof(result));
+        memset(lat,'\0',sizeof(lat));
+        memset(lon,'\0',sizeof(lon));
+        memset(range_error,'\0',sizeof(range_error));
+
         //CHECK SOCKET STATUS
-        uint8 *MAC_add = MAC_ADDRES[i];
-        printf("MAC: %s\n",MAC_add);
+        MAC_add = MAC_ADDRES[i];
         sta_socket = socket(PF_INET, SOCK_STREAM, 0);
         if (-1 == sta_socket) 
 		{
@@ -82,6 +79,7 @@ void get_cordanates(void *pvParameters)
         }
         printf("connect ok!\r\n");
 
+        printf("MAC: %s\r\n",MAC_add);
 		//HTTP REQUEST
         char *pbuf = (char *) zalloc(512);
 		sprintf(pbuf, "GET /geolocation/wifi?v=1.2&bssid=%s HTTP/1.1\r\nHost: %s\r\n"pheadbuffer"", MAC_add, webname);
@@ -232,4 +230,37 @@ void Parser(char *word)
     printf("%s\n",lat );
     printf("%s\n",lon );
     printf("%s\n",range_error);
+}
+int32_t string_to_int(char* string)
+{
+    bool sign = false;
+    uint8_t i = 0;
+    uint8_t j = 0;
+    uint8_t p = 0;
+    int32_t var =0;
+    while(string[j]!='\0')
+    {
+        j++;
+    }
+    if(string[0]=='-')
+    {
+        sign = true;
+        i++;
+        j--;
+    }
+
+    p=j;
+    p--;
+    while(string[i]!='\0')
+    {
+        var += (string[i]-0x30)*ten[p];//power of ten
+        
+        p--;
+        i++;
+    }
+    if(sign == true)
+    {
+        var = var * -1;
+    }
+    return var;
 }
