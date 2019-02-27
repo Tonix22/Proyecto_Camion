@@ -236,7 +236,7 @@ bool Parse_Result(char* str)
     uint8_t i;
     uint8_t data_len;
     parse_state state = IDLE;
-    uint8_t data[3];
+    char data[3];
     int32_t assigned_value;
     while(state !=END)
     {
@@ -246,7 +246,7 @@ bool Parse_Result(char* str)
         }
         if(state == DOBLE_DOT)
         {
-            data[i];
+            data[i]=str[i];
             data_len++;
             if(data_len == 3)
             {
@@ -266,9 +266,52 @@ bool Parse_Result(char* str)
     }
     return false;
 }
+
+char[4] integer_part;//after point
+char[7] decimal_val;//after point
+
+int32_t decimal;
+int32_t integer;
+
 void Parse_Cordenate(char* str)
 {
+    uint8_t i;
+    uint8_t j;
+    uint8_t len;
+    int32_t val;
+    parse_state state = IDLE;
+    while(state !=END)
+    {
+       if(str[i]==':')
+        {
+	    state = DOBLE_DOT;
+	}
+	if( state == DOBLE_DOT)
+	{
+	    integer_part[j] = str[i];
+	    j++;
+	    if(str[i]=='.')
+	    {
+	       state = DOT;
+	       j=0;
+	       integer = string_to_int(integer_part);
+	    }
+	}
 
+	if(state == DOT)
+	{
+	    decimal_val[j] = str[i];
+	    j++;
+	    if(j==6)
+	    {
+		decimal = string_to_int(decimal_val);
+	    	state= END;
+	    }
+	}
+	i++;
+    }
+    
+    return val;
 }
 int32_t string_to_int(char* string)
 {
