@@ -40,6 +40,7 @@
  * Returns      : rf cal sector
 *******************************************************************************/
 extern uint8 MAC_ADDRES[10][20];
+extern signed char Streght[10];
 extern MAC_SIZE;
 uint32 user_rf_cal_sector_set(void)
 {
@@ -81,9 +82,8 @@ uint32 user_rf_cal_sector_set(void)
 void scan_done(void *arg, STATUS status)
 {
     printf("now doing the scan_done... \n");
-    uint8 ssid[33];
+    uint8* ssid = malloc(33);
     uint8 i=0;
-    char temp[128];
     if (status == OK) 
     {
         struct bss_info *bss_link = (struct bss_info *) arg;
@@ -98,7 +98,9 @@ void scan_done(void *arg, STATUS status)
                     MAC2STR(bss_link->bssid), bss_link->channel);
 
             sprintf(MAC_ADDRES[i],MACSTR,MAC2STR(bss_link->bssid));
-            printf("MAC: %s\r\n",MAC_ADDRES[i]);
+            //printf("MAC: %s\r\n",MAC_ADDRES[i]);
+            Streght[i] = bss_link->rssi;
+            
             bss_link = bss_link->next.stqe_next;
             i++;
             MAC_SIZE++;
@@ -108,6 +110,7 @@ void scan_done(void *arg, STATUS status)
     {
         printf("scan fail !!!\r\n");
     }
+    free(ssid);
     wifi_init();
 }
 

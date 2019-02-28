@@ -5,44 +5,25 @@
 #include "lwip/inet.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-
-
-#define pheadbuffer "Connection: keep-alive\r\n\
-Cache-Control: max-age=0\r\n\
-Upgrade-Insecure-Requests: 1\r\n\
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36 \r\n\
-DNT: 1\r\n\
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\n\
-Accept-Encoding: deflate\r\n\
-Accept-Language: es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6\r\n\r\n"
-
-#define DEMO_SERVER "104.31.85.110"
-#define DEMO_SERVER_PORT 80
+#include "gps.h"
 
 void get_data(char* info);
 void Parser(char *word);
 
 char JSON_DATA[200];
-char result[20]={0};
-char lat[30]={0};
-char lon[30]={0};
-char range_error[20]={0};
-
-uint8 webname[] = {"api.mylnikov.org"};
-
+char result[25]={0};
+char lat[35]={0};
+char lon[35]={0};
+char range_error[25]={0};
+signed char Streght[10]={0};
 uint8 MAC_ADDRES[10][20];
 uint8 MAC_SIZE;
 
-typedef enum {
-  IDLE,
-  INIT,
-  BRACKET,
-  LAT,
-  LON,
-  ERR,
-  COMMA,
-  END
-} parse_state ;
+uint8 webname[] = {"api.mylnikov.org"};
+
+
+
+
 
 void get_cordanates(void *pvParameters)
 {
@@ -53,12 +34,24 @@ void get_cordanates(void *pvParameters)
 	uint8_t BINARY	  =   0;
     struct sockaddr_in remote_ip;
     uint8_t i;
-    //uint8 MAC_add[] = {"d8:37:be:da:41:ff"};    
+    //uint8 MAC_add[] = {"d8:37:be:da:41:ff"};
+    uint8 *MAC_add ;
+    signed char ssid;
     while (i<MAC_SIZE) 
 	{
+        memset(JSON_DATA,0,sizeof(JSON_DATA));
+        memset(result,0,sizeof(result));
+        memset(lat,0,sizeof(lat));
+        memset(lon,0,sizeof(lon));
+        memset(range_error,0,sizeof(range_error));
+    
+        printf("\r\n");
+        printf("MAC number: %d\r\n",i);  
         //CHECK SOCKET STATUS
-        uint8 *MAC_add = MAC_ADDRES[i];
-        printf("MAC: %s\n",MAC_add);
+        MAC_add = MAC_ADDRES[i];
+        printf("MAC: %s\r\n",MAC_add);
+        ssid =Streght[i];
+        printf("rssi: %i\r\n",ssid);
         sta_socket = socket(PF_INET, SOCK_STREAM, 0);
         if (-1 == sta_socket) 
 		{
@@ -67,8 +60,6 @@ void get_cordanates(void *pvParameters)
             printf("socket fail !\r\n");
            //continue;
         }
-        printf("socket ok!\r\n");
-
         bzero(&remote_ip, sizeof(struct sockaddr_in));
         remote_ip.sin_family = AF_INET;
         remote_ip.sin_addr.s_addr = inet_addr(DEMO_SERVER);
@@ -80,7 +71,6 @@ void get_cordanates(void *pvParameters)
             close(sta_socket);
             printf("connect fail!\r\n");
         }
-        printf("connect ok!\r\n");
 
 		//HTTP REQUEST
         char *pbuf = (char *) zalloc(512);
@@ -91,13 +81,12 @@ void get_cordanates(void *pvParameters)
             printf("send fail\n");
             free(pbuf);
         }
-        printf("send success\n");
         //printf("%s",pbuf);
         free(pbuf);
 		//HERE GET THE HTTP PACKETS AND SAVE IT INTO THE FLASH IN ORDER TO LATER BOOT
         recbytes = read(sta_socket, recv_buf, 1460);
-        get_data(recv_buf);
-        Parser(JSON_DATA);
+        http_parse(recv_buf);
+        JSON_parse(JSON_DATA);
 
         if (recbytes < 0) 
 		{
@@ -108,7 +97,7 @@ void get_cordanates(void *pvParameters)
     }
    vTaskDelete(NULL);
 }
-void get_data(char* info)
+void http_parse(char* info)
 {
     
     short i=0;
@@ -140,7 +129,7 @@ void get_data(char* info)
         i++;
     }
 }
-void Parser(char *word)
+void JSON_parse(char *word)
 {
     short i = 0;
     short j=0;

@@ -15,8 +15,8 @@ Accept-Language: es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6\r\n\r\n"
 #define DEMO_SERVER_PORT 80
 
 void get_cordanates(void *pvParameters);
-void get_data(char* info);
-void Parser(char *word);
+void http_parse(char* info);
+void JSON_parse(char *word);
 
 typedef enum {
   IDLE,
