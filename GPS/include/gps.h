@@ -1,7 +1,7 @@
 #ifndef __GPS_H__
 #define __GPS_H__
 
-
+#define MAXROUTERS 10
 #define pheadbuffer "Connection: keep-alive\r\n\
 Cache-Control: max-age=0\r\n\
 Upgrade-Insecure-Requests: 1\r\n\
@@ -17,6 +17,9 @@ Accept-Language: es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6\r\n\r\n"
 void get_cordanates(void *pvParameters);
 void http_parse(char* info);
 void JSON_parse(char *word);
+bool Data_Result(char * string);
+int integer_part(void);
+char * location(void);
 
 typedef enum {
   IDLE,

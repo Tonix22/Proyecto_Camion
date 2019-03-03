@@ -39,8 +39,8 @@
  * Parameters   : none
  * Returns      : rf cal sector
 *******************************************************************************/
-extern uint8 MAC_ADDRES[10][20];
-extern signed char Streght[10];
+extern uint8 MAC_ADDRES[MAXROUTERS][20];
+extern signed char Streght[MAXROUTERS];
 extern MAC_SIZE;
 uint32 user_rf_cal_sector_set(void)
 {
@@ -97,13 +97,15 @@ void scan_done(void *arg, STATUS status)
             printf("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n\r\n", bss_link->authmode, ssid, bss_link->rssi,
                     MAC2STR(bss_link->bssid), bss_link->channel);
 
-            sprintf(MAC_ADDRES[i],MACSTR,MAC2STR(bss_link->bssid));
-            //printf("MAC: %s\r\n",MAC_ADDRES[i]);
-            Streght[i] = bss_link->rssi;
-            
+            if(MAC_SIZE < MAXROUTERS)
+            {
+                sprintf(MAC_ADDRES[i],MACSTR,MAC2STR(bss_link->bssid));
+                Streght[i] = bss_link->rssi;
+                MAC_SIZE++;
+            }
             bss_link = bss_link->next.stqe_next;
             i++;
-            MAC_SIZE++;
+            
         }
     } 
     else 
