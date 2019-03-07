@@ -35,12 +35,37 @@ int lat_filter = 20;
 int lon_filer = -103;
 
 //average
-int aver_lon;
 int aver_lat;
+int aver_lon;
+
+int aver_del_lat;
+int aver_del_lon;
+
 int sum_lat;
 int sum_lon;
+
 uint8_t weight;
 int sum_weight;
+
+uint8_t valid_data_counter = 0;
+int lat_sum;
+int lon_sum;
+
+int delta_lat;
+int delta_lon;
+
+int last_lat;
+int last_lon;
+//this one it is used for filter unvalid data
+int diff_lat;
+int diff_lon;
+uint8_t filter_index;
+//for save taken values
+int lat_data[10];
+int lon_data[10];
+int rssi_data[10];
+int filter_sum;
+uint8_t filter_data_size;
 
 
 void get_cordanates(void *pvParameters)
@@ -60,10 +85,10 @@ void get_cordanates(void *pvParameters)
     //DEBUG variables
     uint8 *MAC_add ;
     signed char ssid;
+
     while (i<MAC_SIZE) 
 	{
         read = true;
-        printf("\r\n");
         //CHECK SOCKET STATUS
         MAC_add = MAC_ADDRES[i];
         ssid = Streght[i];
@@ -124,13 +149,26 @@ void get_cordanates(void *pvParameters)
                     //other lat and lon values will be discarted, not sense to average them.
                     if(lat_filter == lat_int && lon_filer == lon_int)
                     {
-                        //decimal part is avereged only
-                        //average weighted sum
-                        weight  = (100+ssid);
-                        sum_lat = sum_lat+(lat_dec*weight);
-                        sum_lon = sum_lon+(lon_dec*weight);
-                        sum_weight += weight;
+                        lat_sum+=lat_dec;
+                        lon_sum+=lon_dec;
+                        if(valid_data_counter > 0)
+                        {
+                            delta_lat +=abs(last_lat-lat_dec);
+                            delta_lon +=abs(last_lon-lon_dec);
+                        }
+                        last_lat = lat_dec;
+                        last_lon = lon_dec;
+                        
 
+                        lat_data[valid_data_counter]=lat_dec;
+                        printf("NON filtered lat: %d\r\n",lat_dec);
+                        lon_data[valid_data_counter]=lon_dec;
+                        printf("NON filtered lon: %d\r\n",lon_dec);
+                        rssi_data[valid_data_counter]= (100+ssid);
+                        valid_data_counter++;
+                        /*
+                        
+                        
                         //debug vars
                         printf("MAC: %s\r\n",MAC_add);
                         printf("rssi: %i\r\n",ssid);
@@ -140,7 +178,7 @@ void get_cordanates(void *pvParameters)
                         printf("lon_int: %d\r\n",lon_int);
                         printf("lon_dec: %d\r\n",lon_dec);
                         printf("error: %d\r\n",error);
-                        //printf("extra info:%s\r\n",data);
+                        //printf("extra info:%s\r\n",data);*/
                     }
                 }
             }
@@ -164,8 +202,33 @@ void get_cordanates(void *pvParameters)
     }
     free(pbuf);
 
-    aver_lat = sum_lat / sum_weight;
-    aver_lon = sum_lon / sum_weight;
+    aver_lat = lat_sum / valid_data_counter;
+    aver_del_lat = delta_lat /valid_data_counter;
+
+    aver_lon = lon_sum / valid_data_counter;
+    aver_del_lon = delta_lon / valid_data_counter;
+    for(filter_index=0;filter_index<valid_data_counter;filter_index++)
+    {
+        diff_lat = abs(lat_data[filter_index]-aver_lat)-600;
+        diff_lon = abs(lon_data[filter_index]-aver_lon)-600;
+        if(diff_lat < aver_del_lat && diff_lon < aver_del_lon )
+        {
+            printf("filtered lat: %d\r\n",lat_data[filter_index]);
+            printf("filtered lon: %d\r\n",lon_data[filter_index]);
+           // sum_lat += (lat_data[filter_index]*rssi_data[filter_index]);
+            //sum_lon += (lon_data[filter_index]*rssi_data[filter_index]);
+           // sum_weight += rssi_data[filter_index];
+           sum_lat+= lat_data[filter_index];
+           sum_lon+= lon_data[filter_index];
+           filter_data_size++;
+        }
+    }
+    //decimal part is avereged only
+    //average weighted sum
+    //aver_lat = sum_lat / sum_weight;
+    //aver_lon = sum_lon / sum_weight;
+    aver_lat = sum_lat / filter_data_size;
+    aver_lon = sum_lon / filter_data_size;
     printf("average lat: 20.%d\r\n",aver_lat);
     printf("average lon: -103.%d\r\n",aver_lon);
 
@@ -182,7 +245,6 @@ void http_parse(char* info)
 
     while(end == false)
     {
-        //printf("%c",info[i]);
         if(info[i]=='{')
         {
             begin = true;
