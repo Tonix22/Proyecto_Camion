@@ -30,6 +30,17 @@ int error;
 int lon_int;
 int lon_dec;
 char *data;
+//cordenates filter
+int lat_filter = 20;
+int lon_filer = -103;
+
+//average
+int aver_lon;
+int aver_lat;
+int sum_lat;
+int sum_lon;
+uint8_t weight;
+int sum_weight;
 
 
 void get_cordanates(void *pvParameters)
@@ -40,6 +51,9 @@ void get_cordanates(void *pvParameters)
     int sta_socket;
     struct sockaddr_in remote_ip;
     char *pbuf = (char *) zalloc(512);
+
+    int http_valid_request;
+    char *http_token;
     //Control variables
     uint8_t i = 0;
     bool read = true;
@@ -49,15 +63,10 @@ void get_cordanates(void *pvParameters)
     while (i<MAC_SIZE) 
 	{
         read = true;
-        //memset(JSON_DATA,0,sizeof(JSON_DATA)-1);
-    
         printf("\r\n");
-        printf("MAC number: %d\r\n",i);  
         //CHECK SOCKET STATUS
         MAC_add = MAC_ADDRES[i];
-        printf("MAC: %s\r\n",MAC_add);
         ssid = Streght[i];
-        printf("rssi: %i\r\n",ssid);
         sta_socket = socket(PF_INET, SOCK_STREAM, 0);
         if (-1 == sta_socket) 
 		{
@@ -89,27 +98,51 @@ void get_cordanates(void *pvParameters)
                 read = false;
             }
         }
+        
         if(read == true)
         {
             //HERE GET THE HTTP PACKETS
             recbytes = read(sta_socket, recv_buf, 1460);
-            http_parse(recv_buf);
-            exec = Data_Result(JSON_DATA);
-            if(exec)
+            //Valid HTTP packet not fail
+            http_token = strtok(recv_buf," ");
+            http_token = strtok(NULL," ");
+            http_valid_request = atoi(http_token);//check if it 200 meaning good request
+            if(http_valid_request == 200)
             {
-                lat_int = integer_part();
-                lat_dec = decimal_part();
-                error = integer_part();
-                decimal_part();
-                lon_int = integer_part();
-                lon_dec = decimal_part();
-                //data    = location(); TODO CHECK A DINAMIC ALLOCATION FOR THIS MESSAGE BECAUSE IS BIG
-                printf("lat_int: %d\r\n",lat_int);
-                printf("lat_dec: %d\r\n",lat_dec);
-                printf("lon_int: %d\r\n",lon_int);
-                printf("lon_dec: %d\r\n",lon_dec);
-                printf("error: %d\r\n",error);
-                //printf("extra info:%s\r\n",data);
+                http_parse(recv_buf); // TODO get a flag to discard if http fails
+                exec = Data_Result(JSON_DATA);
+                if(exec)
+                {
+                    lat_int = integer_part();
+                    lat_dec = decimal_part();
+                    error   = integer_part();
+                    decimal_part();
+                    lon_int = integer_part();
+                    lon_dec = decimal_part();
+                    //data    = location(); TODO CHECK A DINAMIC ALLOCATION FOR THIS MESSAGE BECAUSE IS BIG
+                    
+                    //other lat and lon values will be discarted, not sense to average them.
+                    if(lat_filter == lat_int && lon_filer == lon_int)
+                    {
+                        //decimal part is avereged only
+                        //average weighted sum
+                        weight  = (100+ssid);
+                        sum_lat = sum_lat+(lat_dec*weight);
+                        sum_lon = sum_lon+(lon_dec*weight);
+                        sum_weight += weight;
+
+                        //debug vars
+                        printf("MAC: %s\r\n",MAC_add);
+                        printf("rssi: %i\r\n",ssid);
+                        
+                        printf("lat_int: %d\r\n",lat_int);
+                        printf("lat_dec: %d\r\n",lat_dec);
+                        printf("lon_int: %d\r\n",lon_int);
+                        printf("lon_dec: %d\r\n",lon_dec);
+                        printf("error: %d\r\n",error);
+                        //printf("extra info:%s\r\n",data);
+                    }
+                }
             }
             else
             {
@@ -130,6 +163,12 @@ void get_cordanates(void *pvParameters)
         i++;
     }
     free(pbuf);
+
+    aver_lat = sum_lat / sum_weight;
+    aver_lon = sum_lon / sum_weight;
+    printf("average lat: 20.%d\r\n",aver_lat);
+    printf("average lon: -103.%d\r\n",aver_lon);
+
    vTaskDelete(NULL);
 }
 void http_parse(char* info)
@@ -140,6 +179,7 @@ void http_parse(char* info)
     bool end = false;
     bool begin = false;
     unsigned char brackets = 0;
+
     while(end == false)
     {
         //printf("%c",info[i]);
