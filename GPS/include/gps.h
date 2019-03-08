@@ -3,6 +3,8 @@
 
 #define MAXROUTERS 20
 #define MAX_VALID_DATA 10
+//#define Weight_average
+#define THRESHOLD  600
 #define pheadbuffer "Connection: keep-alive\r\n\
 Cache-Control: max-age=0\r\n\
 Upgrade-Insecure-Requests: 1\r\n\
@@ -21,6 +23,7 @@ void JSON_parse(char *word);
 bool Data_Result(char * string);
 int integer_part(void);
 char * location(void);
+void MQTT_start(void);
 
 typedef enum {
   IDLE,
@@ -35,9 +38,8 @@ typedef enum {
 
 typedef struct
 {
-    uint32_t decimal_average;
-    uint32_t sum;
-    uint32_t weight_sum;
+  int lat;
+  int lon;
 }cordenate;
 
 

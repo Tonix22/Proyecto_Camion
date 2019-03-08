@@ -26,6 +26,7 @@
 #include "../../include/lwip/lwip/sockets.h"
 #include "../../include/lwip/lwip/netdb.h"
 #include "../../include/lwip/lwip/multi-threads/sockets_mt.h"
+#include "network.h"
 
 #define MQTT_PORT    1883             /* MQTT Port*/
 
@@ -50,6 +51,8 @@ Network network;
 
 int mqtt_lat = 0;
 int mqtt_lon = 0;
+bool INIT = true;
+extern SemaphoreHandle_t Scan_semaphore;
 
 void messageArrived(MessageData* data)
 {
@@ -58,58 +61,68 @@ void messageArrived(MessageData* data)
 
 void mqtt_client_thread(void* pvParameters)
 {
-    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
-    printf("NetworkConnect is %i\r\n", rc);
-    if(MQTT_READY == FALSE)
+    if(INIT == true)
     {
-        MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
-        connectData.username.cstring = AIO_USERNAME;
-        connectData.password.cstring = AIO_KEY;
-        connectData.MQTTVersion = 3;
-        connectData.clientID.cstring = "MyFirstMQTT";// HOW I WILL BE CALLED
-        rc = MQTTConnect(&client, &connectData);
-        printf("MQTTConnect is %i\r\n", rc);
-        if(rc ==0)
-        {
-            MQTT_READY = TRUE;
-        }
+        mqtt_init();
+        INIT = false;
     }
-
-    if(rc == 0)
+    else
     {
-		if(xSemaphoreTake(MQTT_semaphore, ( TickType_t ) 1000 ) == pdTRUE)
+        rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
+        printf("NetworkConnect is %i\r\n", rc);
+        if(MQTT_READY == FALSE)
         {
-            if(xQueueReceive(MQTT_Queue, &(mqtt_lat), ( TickType_t ) 0) == pdPASS)
+            MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
+            connectData.username.cstring = AIO_USERNAME;
+            connectData.password.cstring = AIO_KEY;
+            connectData.MQTTVersion = 3;
+            connectData.clientID.cstring = "MyFirstMQTT";// HOW I WILL BE CALLED
+            rc = MQTTConnect(&client, &connectData);
+            printf("MQTTConnect is %i\r\n", rc);
+            if(rc ==0)
             {
-                xQueueReceive(MQTT_Queue, &(mqtt_lon), ( TickType_t ) 0);
-
-                MQTTMessage* message = malloc(sizeof(MQTTMessage));
-                char* payload   = malloc(sizeof(char)*50);
-                sprintf(payload,"{\r\n\"lat\":20.%d,\r\n\"lon\":-103.%d\r\n}",mqtt_lat,mqtt_lon);
-                message->qos = QOS2;
-                message->retained = 0;
-                message->payload = payload;
-                message->payloadlen = strlen(payload);
-                printf("message: %s\r\n",payload);
-                rc = MQTTPublish(&client, "EmilioTonix/feeds/GPS", message);
-
-                if (rc != 0) 
-                {
-                    printf("SUB NAK\r\n");
-                    MQTT_READY = FALSE;
-                } 
-                else 
-                {
-                    printf("SUB AKK\r\n");
-                }
-
-                free(payload);
-                free(message);
-                xSemaphoreGive(MQTT_semaphore);
+                MQTT_READY = TRUE;
             }
         }
-    }   
-    close(network.my_socket);
+
+        if(rc == 0)
+        {
+            if(xSemaphoreTake(MQTT_semaphore, ( TickType_t ) 1000 ) == pdTRUE)
+            {
+                if(xQueueReceive(MQTT_Queue, &(mqtt_lat), ( TickType_t ) 0) == pdPASS)
+                {
+                    xQueueReceive(MQTT_Queue, &(mqtt_lon), ( TickType_t ) 0);
+
+                    MQTTMessage* message = malloc(sizeof(MQTTMessage));
+                    char* payload   = malloc(sizeof(char)*50);
+                    sprintf(payload,"{\r\n\"lat\":20.%d,\r\n\"lon\":-103.%d\r\n}",mqtt_lat,mqtt_lon);
+                    message->qos = QOS2;
+                    message->retained = 0;
+                    message->payload = payload;
+                    message->payloadlen = strlen(payload);
+                    printf("message: %s\r\n",payload);
+                    rc = MQTTPublish(&client, "EmilioTonix/feeds/GPS", message);
+
+                    if (rc != 0) 
+                    {
+                        printf("SUB NAK\r\n");
+                        MQTT_READY = FALSE;
+                    } 
+                    else 
+                    {
+                        printf("SUB AKK\r\n");
+                    }
+
+                    free(payload);
+                    free(message);
+                    xSemaphoreGive(MQTT_semaphore);
+                }
+            }
+        }   
+        close(network.my_socket);
+        xSemaphoreGive(Scan_semaphore);
+    }
+   
     vTaskDelete(NULL);
 }
 

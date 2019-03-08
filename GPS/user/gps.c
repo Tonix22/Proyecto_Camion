@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include "MQTT_task.h"
 
-
 extern QueueHandle_t MQTT_Queue;
 extern SemaphoreHandle_t MQTT_semaphore ;
 
@@ -40,37 +39,32 @@ int lat_filter = 20;
 int lon_filer = -103;
 
 //average
-int aver_lat;
-int aver_lon;
+cordenate scanning_avg;
 
-int aver_del_lat;
-int aver_del_lon;
+cordenate delta_avg;
 
-int sum_lat;
-int sum_lon;
+cordenate filter_sum;
+
+cordenate non_filter_sum;
+
+cordenate delta_sum;
+
+cordenate previous;
+
+cordenate avg_distance;
 
 uint8_t weight;
 int sum_weight;
 
-uint8_t valid_data_counter = 0;
-int lat_sum;
-int lon_sum;
-
-int delta_lat;
-int delta_lon;
-
-int last_lat;
-int last_lon;
 //this one it is used for filter unvalid data
-int diff_lat;
-int diff_lon;
-uint8_t filter_index;
+
 //for save taken values
-int lat_data[10];
-int lon_data[10];
-int rssi_data[10];
-int filter_sum;
+int lat_data[MAX_VALID_DATA];
+int lon_data[MAX_VALID_DATA];
+int rssi_data[MAX_VALID_DATA];
+uint8_t valid_data_counter = 0;
 uint8_t filter_data_size;
+uint8_t filter_index;
 
 
 void get_cordanates(void *pvParameters)
@@ -81,22 +75,22 @@ void get_cordanates(void *pvParameters)
     int sta_socket;
     struct sockaddr_in remote_ip;
     char *pbuf = (char *) zalloc(512);
-
     int http_valid_request;
     char *http_token;
+
     //Control variables
     uint8_t i = 0;
     bool read = true;
+
     //DEBUG variables
     uint8 *MAC_add ;
     signed char ssid;
-
     valid_data_counter = 0;
     filter_data_size = 0;
+    i = 0;
 
     while (i<MAC_SIZE) 
 	{
-        
         //CHECK SOCKET STATUS
         MAC_add = MAC_ADDRES[i];
         ssid = Streght[i];
@@ -169,22 +163,22 @@ void get_cordanates(void *pvParameters)
                     //other lat and lon values will be discarted, not sense to average them.
                     if(lat_filter == lat_int && lon_filer == lon_int && valid_data_counter< MAX_VALID_DATA)
                     {
-                        lat_sum+=lat_dec;
-                        lon_sum+=lon_dec;
+                        non_filter_sum.lat+=lat_dec;
+                        non_filter_sum.lon+=lon_dec;
                         if(valid_data_counter > 0)
                         {
-                            delta_lat +=abs(last_lat-lat_dec);
-                            delta_lon +=abs(last_lon-lon_dec);
+                            delta_sum.lat +=abs(previous.lat-lat_dec);
+                            delta_sum.lon +=abs(previous.lon-lon_dec);
                         }
-                        last_lat = lat_dec;
-                        last_lon = lon_dec;
+                        previous.lat = lat_dec;
+                        previous.lon = lon_dec;
                         
-
                         lat_data[valid_data_counter]=lat_dec;
                         
                         lon_data[valid_data_counter]=lon_dec;
                         
                         rssi_data[valid_data_counter]= (100+ssid);
+
                         valid_data_counter++;
                         
                         //debug vars
@@ -222,55 +216,76 @@ void get_cordanates(void *pvParameters)
         vTaskDelay(300/portTICK_RATE_MS);
         i++;
     }
+    //Free HTTP resources
     free(pbuf);
     close(sta_socket);
-    vTaskDelay(1000/portTICK_RATE_MS);
 
-    aver_lat = lat_sum / valid_data_counter;
-    aver_del_lat = delta_lat /valid_data_counter;
-
-    aver_lon = lon_sum / valid_data_counter;
-    aver_del_lon = delta_lon / valid_data_counter;
+    // average for data and deltas
+    scanning_avg.lat = non_filter_sum.lat / valid_data_counter;
+    scanning_avg.lon = non_filter_sum.lon / valid_data_counter;
+    
+    //same for longitud
+    delta_avg.lon = delta_sum.lon / valid_data_counter;
+    delta_avg.lat = delta_sum.lat /valid_data_counter;
+    //Filtering data which is out of the averange and deviation
     for(filter_index=0;filter_index<valid_data_counter;filter_index++)
     {
-        diff_lat = abs(lat_data[filter_index]-aver_lat)-600;
-        diff_lon = abs(lon_data[filter_index]-aver_lon)-600;
-        if(diff_lat < aver_del_lat && diff_lon < aver_del_lon )
+        avg_distance.lat = abs(lat_data[filter_index]-scanning_avg.lat)-THRESHOLD;
+        avg_distance.lon = abs(lon_data[filter_index]-scanning_avg.lon)-THRESHOLD;
+
+        if(avg_distance.lat < delta_avg.lat && avg_distance.lon < delta_avg.lon )
         {
             printf("filtered lat: %d\r\n",lat_data[filter_index]);
             printf("filtered lon: %d\r\n",lon_data[filter_index]);
-           // sum_lat += (lat_data[filter_index]*rssi_data[filter_index]);
-            //sum_lon += (lon_data[filter_index]*rssi_data[filter_index]);
-           // sum_weight += rssi_data[filter_index];
-           sum_lat+= lat_data[filter_index];
-           sum_lon+= lon_data[filter_index];
-           filter_data_size++;
+            #ifdef Weight_average
+            filter_sum.lat += (lat_data[filter_index]*rssi_data[filter_index]);
+            filter_sum.lon += (lon_data[filter_index]*rssi_data[filter_index]);
+            sum_weight += rssi_data[filter_index];
+            #else
+            filter_sum.lat+= lat_data[filter_index];
+            filter_sum.lon+= lon_data[filter_index];
+            filter_data_size++;
+            #endif
         }
     }
     //decimal part is avereged only
     //average weighted sum
-    //aver_lat = sum_lat / sum_weight;
-    //aver_lon = sum_lon / sum_weight;
-    aver_lat = sum_lat / filter_data_size;
-    aver_lon = sum_lon / filter_data_size;
-    printf("valid data number: %d\r\n",filter_data_size);
-    printf("average lat: 20.%d\r\n",aver_lat);
-    printf("average lon: -103.%d\r\n",aver_lon);
+    #ifdef Weight_average
+        scanning_avg.lat = filter_sum.lat / sum_weight;
+        scanning_avg.lon = filter_sum.lot / sum_weight;
+    #else
+        scanning_avg.lat = filter_sum.lat / filter_data_size;
+        scanning_avg.lon = filter_sum.lon / filter_data_size;
+    #endif
 
-    mqtt_init();
+    memset(lat_data,0,MAX_VALID_DATA);
+    memset(lon_data,0,MAX_VALID_DATA);
+    
+    printf("valid data number: %d\r\n",filter_data_size);
+    printf("average lat: 20.%d\r\n",scanning_avg.lat);
+    printf("average lon: -103.%d\r\n",scanning_avg.lon);
+
+    MQTT_start();
+    vTaskDelete(NULL);
+}
+
+void MQTT_start(void)
+{
     if(MQTT_Queue != NULL && MQTT_semaphore!=NULL)
     {
         xSemaphoreGive( MQTT_semaphore );
-        xQueueSend( MQTT_Queue,( void * ) &aver_lat,( TickType_t ) 100 );
-        xQueueSend( MQTT_Queue,( void * ) &aver_lon,( TickType_t ) 100 );
-        xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
-                      MQTT_CLIENT_THREAD_STACK_WORDS,
-                      NULL,
-                      2,
-                      NULL);
+        xQueueSend( MQTT_Queue,( void * ) &scanning_avg.lat,( TickType_t ) 100 );
+        xQueueSend( MQTT_Queue,( void * ) &scanning_avg.lon,( TickType_t ) 100 );
     }
-
-   vTaskDelete(NULL);
+    else
+    {
+        printf("MQTT init\r\n");
+    }
+    xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
+                MQTT_CLIENT_THREAD_STACK_WORDS,
+                NULL,
+                2,
+                NULL);
 }
 void http_parse(char* info)
 {
