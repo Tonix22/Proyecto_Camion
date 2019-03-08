@@ -1,4 +1,5 @@
 #include "esp_common.h"
+#include "freeRTOS_wrapper.h"
 #include "uart.h"
 #include "lwip/mem.h"
 #include "lwip/sockets.h"
@@ -8,7 +9,11 @@
 #include "gps.h"
 #include <string.h>
 #include <stdlib.h>
+#include "MQTT_task.h"
 
+
+extern QueueHandle_t MQTT_Queue;
+extern SemaphoreHandle_t MQTT_semaphore ;
 
 //Router INFO
 signed char Streght[MAXROUTERS]={0};
@@ -198,11 +203,13 @@ void get_cordanates(void *pvParameters)
             printf("bara data, buffer empty!\r\n");
             close(sta_socket);
         }
-        vTaskDelay(100/portTICK_RATE_MS);
+        vTaskDelay(300/portTICK_RATE_MS);
         i++;
     }
     free(pbuf);
-
+    close(sta_socket);
+    vTaskDelay(1000/portTICK_RATE_MS);
+    
     aver_lat = lat_sum / valid_data_counter;
     aver_del_lat = delta_lat /valid_data_counter;
 
@@ -232,6 +239,19 @@ void get_cordanates(void *pvParameters)
     aver_lon = sum_lon / filter_data_size;
     printf("average lat: 20.%d\r\n",aver_lat);
     printf("average lon: -103.%d\r\n",aver_lon);
+
+    mqtt_init();
+    if(MQTT_Queue != NULL && MQTT_semaphore!=NULL)
+    {
+        xSemaphoreGive( MQTT_semaphore );
+        xQueueSend( MQTT_Queue,( void * ) &aver_lat,( TickType_t ) 100 );
+        xQueueSend( MQTT_Queue,( void * ) &aver_lon,( TickType_t ) 100 );
+        xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
+                      MQTT_CLIENT_THREAD_STACK_WORDS,
+                      NULL,
+                      2,
+                      NULL);
+    }
 
    vTaskDelete(NULL);
 }

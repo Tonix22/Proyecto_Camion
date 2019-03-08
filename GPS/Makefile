@@ -22,8 +22,7 @@ GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
-	user    \
-	sample_lib
+    user
 
 endif # } PDIR
 
@@ -46,8 +45,7 @@ ifeq ($(FLAVOR),release)
 endif
 
 COMPONENTS_eagle.app.v6 = \
-	user/libuser.a  \
-	sample_lib/libsample.a
+    user/libuser.a
 
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDK_PATH)/lib        \
@@ -75,9 +73,11 @@ LINKFLAGS_eagle.app.v6 = \
 	-lpp	\
 	-lpwm	\
 	-lsmartconfig	\
+	-lmbedtls		\
 	-lspiffs	\
-	-lssl	\
+	-lopenssl               \
 	-lwpa	\
+	-lmqtt    \
 	-lwps		\
 	$(DEP_LIBS_eagle.app.v6)					\
 	-Wl,--end-group
@@ -100,7 +100,7 @@ DEPENDS_eagle.app.v6 = \
 #	-DTXRX_TXBUF_DEBUG
 #	-DTXRX_RXBUF_DEBUG
 #	-DWLAN_CONFIG_CCX
-CONFIGURATION_DEFINES =	-DICACHE_FLASH
+CONFIGURATION_DEFINES =	-DICACHE_FLASH -DMQTT_TASK
 
 DEFINES +=				\
 	$(UNIVERSAL_TARGET_DEFINES)	\
