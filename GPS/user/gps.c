@@ -21,7 +21,8 @@ uint8 MAC_SIZE = 0;
 
 //HTTP Data
 uint8 webname[] = {"api.mylnikov.org"};
-char recv_buf[1460];
+char recv_buf[3000];
+//char recv_buf[1460];
 
 
 //Cordenates variables
@@ -57,7 +58,7 @@ uint8_t weight;
 int sum_weight;
 
 //this one it is used for filter unvalid data
-
+extern SemaphoreHandle_t Scan_semaphore;
 //for save taken values
 int lat_data[MAX_VALID_DATA];
 int lon_data[MAX_VALID_DATA];
@@ -142,11 +143,13 @@ void get_cordanates(void *pvParameters)
         {
             //HERE GET THE HTTP PACKETS
             recbytes = read(sta_socket, recv_buf, 1460);
+            //printf("debug buffer:%s\r\n\r\n",recv_buf);
             //Valid HTTP packet not fail
             http_token = strtok(recv_buf," ");
             http_token = strtok(NULL," ");
-            http_valid_request = atoi(http_token);//check if it 200 meaning good request
-            if(http_valid_request == 200)
+            //http_valid_request = atoi(http_token);//check if it 200 meaning good request
+            //if(http_valid_request == 200)
+            if(http_token[0] == '2')
             {
                 http_parse(recv_buf);
                 exec = Data_Result(JSON_DATA);
@@ -201,6 +204,8 @@ void get_cordanates(void *pvParameters)
             else
             {
                 printf("ERROR 404: Object was not found\r\n");
+                read = false;
+                close(sta_socket);
             }
         }
         else
@@ -219,53 +224,61 @@ void get_cordanates(void *pvParameters)
     //Free HTTP resources
     free(pbuf);
     close(sta_socket);
-
-    // average for data and deltas
-    scanning_avg.lat = non_filter_sum.lat / valid_data_counter;
-    scanning_avg.lon = non_filter_sum.lon / valid_data_counter;
-    
-    //same for longitud
-    delta_avg.lon = delta_sum.lon / valid_data_counter;
-    delta_avg.lat = delta_sum.lat /valid_data_counter;
-    //Filtering data which is out of the averange and deviation
-    for(filter_index=0;filter_index<valid_data_counter;filter_index++)
+    if(valid_data_counter != 0)
     {
-        avg_distance.lat = abs(lat_data[filter_index]-scanning_avg.lat)-THRESHOLD;
-        avg_distance.lon = abs(lon_data[filter_index]-scanning_avg.lon)-THRESHOLD;
-
-        if(avg_distance.lat < delta_avg.lat && avg_distance.lon < delta_avg.lon )
+        // average for data and deltas
+        scanning_avg.lat = non_filter_sum.lat / valid_data_counter;
+        scanning_avg.lon = non_filter_sum.lon / valid_data_counter;
+        
+        //same for longitud
+        delta_avg.lon = delta_sum.lon / valid_data_counter;
+        delta_avg.lat = delta_sum.lat /valid_data_counter;
+        //Filtering data which is out of the averange and deviation
+        for(filter_index=0;filter_index<valid_data_counter;filter_index++)
         {
-            printf("filtered lat: %d\r\n",lat_data[filter_index]);
-            printf("filtered lon: %d\r\n",lon_data[filter_index]);
-            #ifdef Weight_average
-            filter_sum.lat += (lat_data[filter_index]*rssi_data[filter_index]);
-            filter_sum.lon += (lon_data[filter_index]*rssi_data[filter_index]);
-            sum_weight += rssi_data[filter_index];
-            #else
-            filter_sum.lat+= lat_data[filter_index];
-            filter_sum.lon+= lon_data[filter_index];
-            filter_data_size++;
-            #endif
+            avg_distance.lat = abs(lat_data[filter_index]-scanning_avg.lat)-THRESHOLD;
+            avg_distance.lon = abs(lon_data[filter_index]-scanning_avg.lon)-THRESHOLD;
+
+            if(avg_distance.lat < delta_avg.lat && avg_distance.lon < delta_avg.lon )
+            {
+                printf("filtered lat: %d\r\n",lat_data[filter_index]);
+                printf("filtered lon: %d\r\n",lon_data[filter_index]);
+                #ifdef Weight_average
+                filter_sum.lat += (lat_data[filter_index]*rssi_data[filter_index]);
+                filter_sum.lon += (lon_data[filter_index]*rssi_data[filter_index]);
+                sum_weight += rssi_data[filter_index];
+                #else
+                filter_sum.lat+= lat_data[filter_index];
+                filter_sum.lon+= lon_data[filter_index];
+                filter_data_size++;
+                #endif
+            }
         }
-    }
-    //decimal part is avereged only
-    //average weighted sum
-    #ifdef Weight_average
-        scanning_avg.lat = filter_sum.lat / sum_weight;
-        scanning_avg.lon = filter_sum.lot / sum_weight;
-    #else
-        scanning_avg.lat = filter_sum.lat / filter_data_size;
-        scanning_avg.lon = filter_sum.lon / filter_data_size;
-    #endif
+        //decimal part is avereged only
+        //average weighted sum
+        #ifdef Weight_average
+            scanning_avg.lat = filter_sum.lat / sum_weight;
+            scanning_avg.lon = filter_sum.lot / sum_weight;
+        #else
+            scanning_avg.lat = filter_sum.lat / filter_data_size;
+            scanning_avg.lon = filter_sum.lon / filter_data_size;
+        #endif
 
-    memset(lat_data,0,MAX_VALID_DATA);
-    memset(lon_data,0,MAX_VALID_DATA);
-    
-    printf("valid data number: %d\r\n",filter_data_size);
-    printf("average lat: 20.%d\r\n",scanning_avg.lat);
-    printf("average lon: -103.%d\r\n",scanning_avg.lon);
+        //memset(lat_data,0,MAX_VALID_DATA-1);
+        //memset(lon_data,0,MAX_VALID_DATA-1);
+            printf("average lat: 20.%d\r\n",scanning_avg.lat);
+            printf("average lon: -103.%d\r\n",scanning_avg.lon);
+            printf("valid data number: %d\r\n",filter_data_size);
+            MQTT_start();
+        }
+        else
+        {
+            xSemaphoreGive(Scan_semaphore);
+            printf("valid data number: %d\r\n",filter_data_size);
+        }
+        
+        
 
-    MQTT_start();
     vTaskDelete(NULL);
 }
 

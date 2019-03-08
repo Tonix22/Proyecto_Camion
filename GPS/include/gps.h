@@ -1,7 +1,7 @@
 #ifndef __GPS_H__
 #define __GPS_H__
 
-#define MAXROUTERS 20
+#define MAXROUTERS 15
 #define MAX_VALID_DATA 10
 //#define Weight_average
 #define THRESHOLD  600

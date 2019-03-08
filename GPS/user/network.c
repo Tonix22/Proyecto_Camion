@@ -39,7 +39,6 @@ void network_init(System_Event_t *evt)
             printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
-            MQTT_start();
             xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 3, NULL );
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
@@ -82,6 +81,7 @@ void scan_done(void *arg, STATUS status)
     printf("now doing the scan_done... \n");
     uint8* ssid = malloc(33);
     uint8 i=0;
+    MAC_SIZE = 0;
     if (status == OK) 
     {
         struct bss_info *bss_link = (struct bss_info *) arg;
@@ -118,7 +118,7 @@ void scan_done(void *arg, STATUS status)
     }
     else
     {
-        //xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 3, NULL );
+        xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 2, NULL );
     }
 }
 void Scan_Task (void *pvParameters)
@@ -129,6 +129,7 @@ void Scan_Task (void *pvParameters)
     {
         if(xSemaphoreTake(Scan_semaphore, ( TickType_t ) 1000 ) == pdTRUE)
         {
+            vTaskDelay(1000/portTICK_RATE_MS);
             wifi_station_scan(NULL,scan_done);
         }
         vTaskDelay(1000/portTICK_RATE_MS);

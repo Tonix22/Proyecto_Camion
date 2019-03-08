@@ -120,9 +120,8 @@ void mqtt_client_thread(void* pvParameters)
             }
         }   
         close(network.my_socket);
-        xSemaphoreGive(Scan_semaphore);
     }
-   
+    xSemaphoreGive(Scan_semaphore);
     vTaskDelete(NULL);
 }
 
