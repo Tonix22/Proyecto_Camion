@@ -86,6 +86,9 @@ void get_cordanates(void *pvParameters)
     uint8 *MAC_add ;
     signed char ssid;
 
+    valid_data_counter = 0;
+    filter_data_size = 0;
+
     while (i<MAC_SIZE) 
 	{
         read = true;
@@ -134,7 +137,7 @@ void get_cordanates(void *pvParameters)
             http_valid_request = atoi(http_token);//check if it 200 meaning good request
             if(http_valid_request == 200)
             {
-                http_parse(recv_buf); // TODO get a flag to discard if http fails
+                http_parse(recv_buf);
                 exec = Data_Result(JSON_DATA);
                 if(exec)
                 {
@@ -147,7 +150,7 @@ void get_cordanates(void *pvParameters)
                     //data    = location(); TODO CHECK A DINAMIC ALLOCATION FOR THIS MESSAGE BECAUSE IS BIG
                     
                     //other lat and lon values will be discarted, not sense to average them.
-                    if(lat_filter == lat_int && lon_filer == lon_int)
+                    if(lat_filter == lat_int && lon_filer == lon_int && valid_data_counter< MAX_VALID_DATA)
                     {
                         lat_sum+=lat_dec;
                         lon_sum+=lon_dec;
@@ -161,14 +164,12 @@ void get_cordanates(void *pvParameters)
                         
 
                         lat_data[valid_data_counter]=lat_dec;
-                        printf("NON filtered lat: %d\r\n",lat_dec);
+                        //printf("NON filtered lat: %d\r\n",lat_dec);
                         lon_data[valid_data_counter]=lon_dec;
-                        printf("NON filtered lon: %d\r\n",lon_dec);
+                        //printf("NON filtered lon: %d\r\n",lon_dec);
                         rssi_data[valid_data_counter]= (100+ssid);
                         valid_data_counter++;
-                        /*
-                        
-                        
+                        /* 
                         //debug vars
                         printf("MAC: %s\r\n",MAC_add);
                         printf("rssi: %i\r\n",ssid);
@@ -197,7 +198,7 @@ void get_cordanates(void *pvParameters)
             printf("bara data, buffer empty!\r\n");
             close(sta_socket);
         }
-        vTaskDelay(500/portTICK_RATE_MS);
+        vTaskDelay(100/portTICK_RATE_MS);
         i++;
     }
     free(pbuf);
@@ -213,8 +214,8 @@ void get_cordanates(void *pvParameters)
         diff_lon = abs(lon_data[filter_index]-aver_lon)-600;
         if(diff_lat < aver_del_lat && diff_lon < aver_del_lon )
         {
-            printf("filtered lat: %d\r\n",lat_data[filter_index]);
-            printf("filtered lon: %d\r\n",lon_data[filter_index]);
+            //printf("filtered lat: %d\r\n",lat_data[filter_index]);
+            //printf("filtered lon: %d\r\n",lon_data[filter_index]);
            // sum_lat += (lat_data[filter_index]*rssi_data[filter_index]);
             //sum_lon += (lon_data[filter_index]*rssi_data[filter_index]);
            // sum_weight += rssi_data[filter_index];
