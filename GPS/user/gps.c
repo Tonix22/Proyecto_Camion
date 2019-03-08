@@ -96,29 +96,41 @@ void get_cordanates(void *pvParameters)
 
     while (i<MAC_SIZE) 
 	{
-        read = true;
+        
         //CHECK SOCKET STATUS
         MAC_add = MAC_ADDRES[i];
         ssid = Streght[i];
-        sta_socket = socket(PF_INET, SOCK_STREAM, 0);
-        if (-1 == sta_socket) 
-		{
-            close(sta_socket);
-            printf("socket fail !\r\n");
-            read = false;
-        }
-        bzero(&remote_ip, sizeof(struct sockaddr_in));
-        remote_ip.sin_family = AF_INET;
-        remote_ip.sin_addr.s_addr = inet_addr(DEMO_SERVER);
-        remote_ip.sin_port = htons(DEMO_SERVER_PORT);
-        
-        //CONNECT SOCKET
-        if(0 != connect(sta_socket,(struct sockaddr *)(&remote_ip),sizeof(struct sockaddr)))
+        if(i == 0 || read == false)
         {
-            close(sta_socket);
-            printf("connect fail!\r\n");
-            read = false;
+            sta_socket = socket(PF_INET, SOCK_STREAM, 0);
+            if (-1 == sta_socket) 
+            {
+                close(sta_socket);
+                printf("socket fail !\r\n");
+                read = false;
+            }
+            else
+            {
+                read = true;
+            }
+            bzero(&remote_ip, sizeof(struct sockaddr_in));
+            remote_ip.sin_family = AF_INET;
+            remote_ip.sin_addr.s_addr = inet_addr(DEMO_SERVER);
+            remote_ip.sin_port = htons(DEMO_SERVER_PORT);
+            
+            //CONNECT SOCKET
+            if(0 != connect(sta_socket,(struct sockaddr *)(&remote_ip),sizeof(struct sockaddr)))
+            {
+                close(sta_socket);
+                printf("connect fail!\r\n");
+                read = false;
+            }
+            else
+            {
+                read = true;
+            }
         }
+        
         if(read == true)
         {
             //HTTP REQUEST
@@ -169,22 +181,26 @@ void get_cordanates(void *pvParameters)
                         
 
                         lat_data[valid_data_counter]=lat_dec;
-                        //printf("NON filtered lat: %d\r\n",lat_dec);
+                        
                         lon_data[valid_data_counter]=lon_dec;
-                        //printf("NON filtered lon: %d\r\n",lon_dec);
+                        
                         rssi_data[valid_data_counter]= (100+ssid);
                         valid_data_counter++;
-                        /* 
+                        
                         //debug vars
                         printf("MAC: %s\r\n",MAC_add);
                         printf("rssi: %i\r\n",ssid);
+                        printf("NON filtered lat: %d\r\n",lat_dec);
+                        printf("NON filtered lon: %d\r\n",lon_dec);
                         
+                        #ifdef DEBUG
                         printf("lat_int: %d\r\n",lat_int);
                         printf("lat_dec: %d\r\n",lat_dec);
                         printf("lon_int: %d\r\n",lon_int);
                         printf("lon_dec: %d\r\n",lon_dec);
                         printf("error: %d\r\n",error);
-                        //printf("extra info:%s\r\n",data);*/
+                        #endif 
+                        ///* printf("extra info:%s\r\n",data);*/
                     }
                 }
             }
@@ -209,7 +225,7 @@ void get_cordanates(void *pvParameters)
     free(pbuf);
     close(sta_socket);
     vTaskDelay(1000/portTICK_RATE_MS);
-    
+
     aver_lat = lat_sum / valid_data_counter;
     aver_del_lat = delta_lat /valid_data_counter;
 
@@ -221,8 +237,8 @@ void get_cordanates(void *pvParameters)
         diff_lon = abs(lon_data[filter_index]-aver_lon)-600;
         if(diff_lat < aver_del_lat && diff_lon < aver_del_lon )
         {
-            //printf("filtered lat: %d\r\n",lat_data[filter_index]);
-            //printf("filtered lon: %d\r\n",lon_data[filter_index]);
+            printf("filtered lat: %d\r\n",lat_data[filter_index]);
+            printf("filtered lon: %d\r\n",lon_data[filter_index]);
            // sum_lat += (lat_data[filter_index]*rssi_data[filter_index]);
             //sum_lon += (lon_data[filter_index]*rssi_data[filter_index]);
            // sum_weight += rssi_data[filter_index];
@@ -237,6 +253,7 @@ void get_cordanates(void *pvParameters)
     //aver_lon = sum_lon / sum_weight;
     aver_lat = sum_lat / filter_data_size;
     aver_lon = sum_lon / filter_data_size;
+    printf("valid data number: %d\r\n",filter_data_size);
     printf("average lat: 20.%d\r\n",aver_lat);
     printf("average lon: -103.%d\r\n",aver_lon);
 

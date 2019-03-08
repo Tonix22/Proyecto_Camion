@@ -82,8 +82,6 @@ void mqtt_client_thread(void* pvParameters)
             if(xQueueReceive(MQTT_Queue, &(mqtt_lat), ( TickType_t ) 0) == pdPASS)
             {
                 xQueueReceive(MQTT_Queue, &(mqtt_lon), ( TickType_t ) 0);
-                printf("MQTT_lat:%d\r\n",mqtt_lat);
-                printf("MQTT_lon:%d\r\n",mqtt_lon);
 
                 MQTTMessage* message = malloc(sizeof(MQTTMessage));
                 char* payload   = malloc(sizeof(char)*50);
