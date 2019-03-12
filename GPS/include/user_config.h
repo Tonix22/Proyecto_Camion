@@ -25,14 +25,14 @@
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
 
-
+#define House
 #ifdef House
 #define SSID "HOME-5818"
 #define PASS "C900797AAD34D8AB"
 #endif
 
-#define SSID "Moto Z2 Play 3644"
-#define PASS "5ce82952cda2"
+//#define SSID "Moto Z2 Play 3644"
+//#define PASS "5ce82952cda2"
 
 #ifdef CASALUIS
 #define SSID "Totalplay-D99D"

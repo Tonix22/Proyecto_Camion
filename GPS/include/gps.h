@@ -1,10 +1,11 @@
 #ifndef __GPS_H__
 #define __GPS_H__
 
-#define MAXROUTERS 15
+#define MAXROUTERS 20
 #define MAX_VALID_DATA 10
 //#define Weight_average
-#define THRESHOLD  600
+#define THRESHOLD_LAT 6000
+#define THRESHOLD_LON 8000
 #define pheadbuffer "Connection: keep-alive\r\n\
 Cache-Control: max-age=0\r\n\
 Upgrade-Insecure-Requests: 1\r\n\

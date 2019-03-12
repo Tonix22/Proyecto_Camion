@@ -10,7 +10,8 @@ extern MAC_SIZE;
 extern void get_cordanates(void *pvParameters);
 SemaphoreHandle_t Scan_semaphore = NULL;
 
-bool first_time = true;
+bool connected = false;
+uint8_t fail_counter = 0;
 /******************************************************************************
  * FunctionName : network_init
  * Description  : Call back for different wifi situations
@@ -39,6 +40,7 @@ void network_init(System_Event_t *evt)
             printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
+            mqtt_init();
             xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 3, NULL );
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
@@ -84,6 +86,7 @@ void scan_done(void *arg, STATUS status)
     MAC_SIZE = 0;
     if (status == OK) 
     {
+        fail_counter = 0;
         struct bss_info *bss_link = (struct bss_info *) arg;
         while (bss_link != NULL) 
         {
@@ -105,20 +108,33 @@ void scan_done(void *arg, STATUS status)
             i++;
             
         }
+
+        free(ssid);
+        if(connected == false)
+        {
+            wifi_init();
+            connected = true;
+        }
+        else
+        {
+            xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 2, NULL );
+        }
     } 
     else 
     {
+        xSemaphoreGive(Scan_semaphore);
+        fail_counter++;
         printf("scan fail !!!\r\n");
-    }
-    free(ssid);
-    if(first_time == true)
-    {
-        wifi_init();
-        first_time = false;
-    }
-    else
-    {
-        xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 2, NULL );
+        printf("try: %d",fail_counter);
+        if(fail_counter > 2)
+        {
+            wifi_station_disconnect();
+            connected = false;
+        }
+        if(fail_counter == 4)
+        {
+            system_restart();
+        }
     }
 }
 void Scan_Task (void *pvParameters)

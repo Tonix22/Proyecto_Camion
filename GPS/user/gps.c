@@ -66,6 +66,8 @@ int rssi_data[MAX_VALID_DATA];
 uint8_t valid_data_counter = 0;
 uint8_t filter_data_size;
 uint8_t filter_index;
+//HTTPVARS
+char pbuf [512];
 
 
 void get_cordanates(void *pvParameters)
@@ -75,7 +77,8 @@ void get_cordanates(void *pvParameters)
     int sin_size;
     int sta_socket;
     struct sockaddr_in remote_ip;
-    char *pbuf = (char *) zalloc(512);
+    //char *pbuf = (char *) zalloc(512);
+    memset(pbuf,'\0',512);
     int http_valid_request;
     char *http_token;
 
@@ -215,14 +218,14 @@ void get_cordanates(void *pvParameters)
         }
         if (recbytes < 0) 
 		{
-            printf("bara data, buffer empty!\r\n");
+            printf("bare data, buffer empty!\r\n");
             close(sta_socket);
         }
         vTaskDelay(300/portTICK_RATE_MS);
         i++;
     }
+     printf("http end\r\n");
     //Free HTTP resources
-    free(pbuf);
     close(sta_socket);
     if(valid_data_counter != 0)
     {
@@ -231,13 +234,29 @@ void get_cordanates(void *pvParameters)
         scanning_avg.lon = non_filter_sum.lon / valid_data_counter;
         
         //same for longitud
-        delta_avg.lon = delta_sum.lon / valid_data_counter;
         delta_avg.lat = delta_sum.lat /valid_data_counter;
+        delta_avg.lon = delta_sum.lon / valid_data_counter;
+        
+        delta_avg.lat += delta_avg.lat /2;
+        delta_avg.lon += delta_avg.lon /2;
+        
         //Filtering data which is out of the averange and deviation
+        printf("filter begins\r\n");
+        printf("valid data counter: %d\r\n",valid_data_counter);
+        printf("delta_lat: %d\r\n",delta_avg.lat);
+        printf("delta_lon: %d\r\n",delta_avg.lon);
+        printf("\r\n");
         for(filter_index=0;filter_index<valid_data_counter;filter_index++)
         {
-            avg_distance.lat = abs(lat_data[filter_index]-scanning_avg.lat)-THRESHOLD;
-            avg_distance.lon = abs(lon_data[filter_index]-scanning_avg.lon)-THRESHOLD;
+            printf("\r\n");
+            printf("filter_index: %d\r\n",filter_index);
+            avg_distance.lat = abs(lat_data[filter_index]-scanning_avg.lat);
+            avg_distance.lon = abs(lon_data[filter_index]-scanning_avg.lon);
+            printf("lat_data:%d\r\n",lat_data[filter_index]);
+            printf("lon_data:%d\r\n",lon_data[filter_index]);
+            printf("avg_distance.lat: %d\r\n", avg_distance.lat);
+            printf("avg_distance.lon: %d\r\n", avg_distance.lon);
+            
 
             if(avg_distance.lat < delta_avg.lat && avg_distance.lon < delta_avg.lon )
             {
@@ -256,29 +275,43 @@ void get_cordanates(void *pvParameters)
         }
         //decimal part is avereged only
         //average weighted sum
-        #ifdef Weight_average
+        if(filter_data_size != 0)
+        {
+            #ifdef Weight_average
             scanning_avg.lat = filter_sum.lat / sum_weight;
             scanning_avg.lon = filter_sum.lot / sum_weight;
-        #else
+            #else
             scanning_avg.lat = filter_sum.lat / filter_data_size;
             scanning_avg.lon = filter_sum.lon / filter_data_size;
-        #endif
-
-        //memset(lat_data,0,MAX_VALID_DATA-1);
-        //memset(lon_data,0,MAX_VALID_DATA-1);
-            printf("average lat: 20.%d\r\n",scanning_avg.lat);
-            printf("average lon: -103.%d\r\n",scanning_avg.lon);
-            printf("valid data number: %d\r\n",filter_data_size);
-            MQTT_start();
+            #endif
         }
         else
         {
-            xSemaphoreGive(Scan_semaphore);
-            printf("valid data number: %d\r\n",filter_data_size);
+            printf("too many variance\r\n");
         }
-        
-        
 
+        delta_sum.lat=0;
+        delta_sum.lon=0;
+        non_filter_sum.lat=0;
+        non_filter_sum.lon=0;
+        filter_sum.lat=0;
+        filter_sum.lon=0;
+        memset(lat_data,'\0',MAX_VALID_DATA);
+        memset(lon_data,'\0',MAX_VALID_DATA);
+        printf("average lat: 20.%d\r\n",scanning_avg.lat);
+        printf("average lon: -103.%d\r\n",scanning_avg.lon);
+        printf("valid data number: %d\r\n",filter_data_size);
+        MQTT_start();
+        vTaskDelay(1000/portTICK_RATE_MS);
+        xSemaphoreGive(Scan_semaphore);
+    }
+    else
+    {
+        vTaskDelay(1000/portTICK_RATE_MS);
+        xSemaphoreGive(Scan_semaphore);
+        printf("valid data number: %d\r\n",filter_data_size);
+    }
+    
     vTaskDelete(NULL);
 }
 
@@ -290,15 +323,11 @@ void MQTT_start(void)
         xQueueSend( MQTT_Queue,( void * ) &scanning_avg.lat,( TickType_t ) 100 );
         xQueueSend( MQTT_Queue,( void * ) &scanning_avg.lon,( TickType_t ) 100 );
     }
-    else
-    {
-        printf("MQTT init\r\n");
-    }
     xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
-                MQTT_CLIENT_THREAD_STACK_WORDS,
-                NULL,
-                2,
-                NULL);
+    MQTT_CLIENT_THREAD_STACK_WORDS,
+    NULL,
+    3,
+    NULL);
 }
 void http_parse(char* info)
 {
