@@ -3,13 +3,18 @@
 #include "gps.h"
 #include "MQTT_task.h"
 #include "freeRTOS_wrapper.h"
+#ifdef NETWORK_DEBUG
+    #define NETWORK_DEBUG_PRINT printf
+#else
+    #define NETWORK_DEBUG_PRINT
+#endif
+
 
 extern uint8 MAC_ADDRES[MAXROUTERS][20];
 extern signed char Streght[MAXROUTERS];
 extern MAC_SIZE;
 extern void get_cordanates(void *pvParameters);
 SemaphoreHandle_t Scan_semaphore = NULL;
-
 bool connected = false;
 bool once = false;
 uint8_t fail_counter = 0;
@@ -27,20 +32,20 @@ void network_init(System_Event_t *evt)
     switch (evt->event_id) 
     {
         case EVENT_STAMODE_CONNECTED:
-            printf("connect to ssid %s, channel %d\n", evt->event_info.connected.ssid,
+            NETWORK_DEBUG_PRINT("connect to ssid %s, channel %d\n", evt->event_info.connected.ssid,
                     evt->event_info.connected.channel);
             break;
         case EVENT_STAMODE_DISCONNECTED:
-            printf("disconnect from ssid %s, reason %d\n", evt->event_info.disconnected.ssid,
+            NETWORK_DEBUG_PRINT("disconnect from ssid %s, reason %d\n", evt->event_info.disconnected.ssid,
                     evt->event_info.disconnected.reason);
             break;
         case EVENT_STAMODE_AUTHMODE_CHANGE:
-            printf("mode: %d -> %d\n", evt->event_info.auth_change.old_mode, evt->event_info.auth_change.new_mode);
+            NETWORK_DEBUG_PRINT("mode: %d -> %d\n", evt->event_info.auth_change.old_mode, evt->event_info.auth_change.new_mode);
             break;
         case EVENT_STAMODE_GOT_IP:
-            printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
+            NETWORK_DEBUG_PRINT("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
-            printf("\n");
+            NETWORK_DEBUG_PRINT("\n");
             if(once==false)
             {
                 once = true;
@@ -49,7 +54,7 @@ void network_init(System_Event_t *evt)
             xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 3, NULL );
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
-            printf("station: " MACSTR "join, AID = %d\n", MAC2STR(evt->event_info.sta_connected.mac),
+            NETWORK_DEBUG_PRINT("station: " MACSTR "join, AID = %d\n", MAC2STR(evt->event_info.sta_connected.mac),
                     evt->event_info.sta_connected.aid);
             break;
         default:
@@ -85,7 +90,7 @@ void wifi_init(void)
 }
 void scan_done(void *arg, STATUS status)
 {
-    printf("now doing the scan_done... \n");
+    NETWORK_DEBUG_PRINT("now doing the scan_done... \n");
     uint8* ssid = malloc(33);
     uint8 i=0;
     MAC_SIZE = 0;
@@ -100,7 +105,7 @@ void scan_done(void *arg, STATUS status)
                 memcpy(ssid, bss_link->ssid, strlen(bss_link->ssid));
             else
                 memcpy(ssid, bss_link->ssid, 32);
-            printf("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n\r\n", bss_link->authmode, ssid, bss_link->rssi,
+            NETWORK_DEBUG_PRINT("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n\r\n", bss_link->authmode, ssid, bss_link->rssi,
                     MAC2STR(bss_link->bssid), bss_link->channel);
 
             if(MAC_SIZE < MAXROUTERS)
@@ -122,7 +127,6 @@ void scan_done(void *arg, STATUS status)
         }
         else
         {
-            vTaskDelay(5000/portTICK_RATE_MS);
             xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 2, NULL );
         }
     } 
@@ -130,12 +134,12 @@ void scan_done(void *arg, STATUS status)
     {
         xSemaphoreGive(Scan_semaphore);
         fail_counter++;
-        printf("scan fail !!!\r\n");
-        printf("try: %d",fail_counter);
+        NETWORK_DEBUG_PRINT("scan fail !!!\r\n");
+        NETWORK_DEBUG_PRINT("try: %d",fail_counter);
         vTaskDelay(1000/portTICK_RATE_MS);
         if(fail_counter == 4)
         {
-            printf("system will restart\r\n");
+            NETWORK_DEBUG_PRINT("system will restart\r\n");
             system_restart();
         }
     }

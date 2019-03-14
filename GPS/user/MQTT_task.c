@@ -113,6 +113,7 @@ void mqtt_client_thread(void* pvParameters)
         }
     }   
     close(network.my_socket);
+    vTaskDelay(5000/portTICK_RATE_MS);
     xSemaphoreGive(Scan_semaphore);
     vTaskDelete(NULL);
 }

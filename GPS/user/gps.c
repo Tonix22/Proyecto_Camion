@@ -11,6 +11,21 @@
 #include <stdlib.h>
 #include "MQTT_task.h"
 
+//#define GPS_DEBUG
+#define ERROR_DEBUG
+
+#ifdef GPS_DEBUG
+    #define GPS_DEBUG_PRINT printf
+#else
+    #define GPS_DEBUG_PRINT
+#endif
+
+#ifdef ERROR_DEBUG
+    #define GPS_ERR_PRINT printf
+#else
+    #define GPS_ERR_PRINT
+#endif
+
 extern QueueHandle_t MQTT_Queue;
 extern SemaphoreHandle_t MQTT_semaphore ;
 
@@ -104,7 +119,7 @@ void get_cordanates(void *pvParameters)
             if (-1 == sta_socket) 
             {
                 close(sta_socket);
-                printf("socket fail !\r\n");
+                GPS_ERR_PRINT("socket fail !\r\n");
                 read = false;
             }
             else
@@ -120,7 +135,7 @@ void get_cordanates(void *pvParameters)
             if(0 != connect(sta_socket,(struct sockaddr *)(&remote_ip),sizeof(struct sockaddr)))
             {
                 close(sta_socket);
-                printf("connect fail!\r\n");
+                GPS_ERR_PRINT("connect fail!\r\n");
                 read = false;
             }
             else
@@ -136,7 +151,7 @@ void get_cordanates(void *pvParameters)
             if (write(sta_socket,pbuf,strlen(pbuf)+1) < 0) 
             {
                 close(sta_socket);
-                printf("send fail\n");
+                GPS_ERR_PRINT("send fail\n");
                 //free(pbuf);
                 read = false;
             }
@@ -146,7 +161,7 @@ void get_cordanates(void *pvParameters)
         {
             //HERE GET THE HTTP PACKETS
             recbytes = read(sta_socket, recv_buf, 1460);
-            //printf("debug buffer:%s\r\n\r\n",recv_buf);
+            //GPS_DEBUG_PRINT("debug buffer:%s\r\n\r\n",recv_buf);
             //Valid HTTP packet not fail
             http_token = strtok(recv_buf," ");
             http_token = strtok(NULL," ");
@@ -188,43 +203,43 @@ void get_cordanates(void *pvParameters)
                         valid_data_counter++;
                         
                         //debug vars
-                        printf("MAC: %s\r\n",MAC_add);
-                        printf("rssi: %i\r\n",ssid);
-                        printf("NON filtered lat: %d\r\n",lat_dec);
-                        printf("NON filtered lon: %d\r\n",lon_dec);
+                        GPS_DEBUG_PRINT("MAC: %s\r\n",MAC_add);
+                        GPS_DEBUG_PRINT("rssi: %i\r\n",ssid);
+                        GPS_DEBUG_PRINT("NON filtered lat: %d\r\n",lat_dec);
+                        GPS_DEBUG_PRINT("NON filtered lon: %d\r\n",lon_dec);
                         
                         #ifdef DEBUG
-                        printf("lat_int: %d\r\n",lat_int);
-                        printf("lat_dec: %d\r\n",lat_dec);
-                        printf("lon_int: %d\r\n",lon_int);
-                        printf("lon_dec: %d\r\n",lon_dec);
-                        printf("error: %d\r\n",error);
+                        GPS_DEBUG_PRINT("lat_int: %d\r\n",lat_int);
+                        GPS_DEBUG_PRINT("lat_dec: %d\r\n",lat_dec);
+                        GPS_DEBUG_PRINT("lon_int: %d\r\n",lon_int);
+                        GPS_DEBUG_PRINT("lon_dec: %d\r\n",lon_dec);
+                        GPS_DEBUG_PRINT("error: %d\r\n",error);
                         #endif 
-                        ///* printf("extra info:%s\r\n",data);*/
+                        ///* GPS_DEBUG_PRINT("extra info:%s\r\n",data);*/
                     }
                 }
             }
             else
             {
-                printf("ERROR 404: Object was not found\r\n");
+                GPS_ERR_PRINT("ERROR 404: Object was not found\r\n");
                 read = false;
                 close(sta_socket);
             }
         }
         else
         {
-            printf("http fail!\r\n");
+            GPS_ERR_PRINT("http fail!\r\n");
             close(sta_socket);
         }
         if (recbytes < 0) 
 		{
-            printf("bare data, buffer empty!\r\n");
+            GPS_ERR_PRINT("bare data, buffer empty!\r\n");
             close(sta_socket);
         }
         vTaskDelay(300/portTICK_RATE_MS);
         i++;
     }
-     printf("http end\r\n");
+     GPS_DEBUG_PRINT("http end\r\n");
     //Free HTTP resources
     close(sta_socket);
     if(valid_data_counter != 0)
@@ -241,27 +256,27 @@ void get_cordanates(void *pvParameters)
         delta_avg.lon += delta_avg.lon /2;
         
         //Filtering data which is out of the averange and deviation
-        printf("filter begins\r\n");
-        printf("valid data counter: %d\r\n",valid_data_counter);
-        printf("delta_lat: %d\r\n",delta_avg.lat);
-        printf("delta_lon: %d\r\n",delta_avg.lon);
-        printf("\r\n");
+        GPS_DEBUG_PRINT("filter begins\r\n");
+        GPS_DEBUG_PRINT("valid data counter: %d\r\n",valid_data_counter);
+        GPS_DEBUG_PRINT("delta_lat: %d\r\n",delta_avg.lat);
+        GPS_DEBUG_PRINT("delta_lon: %d\r\n",delta_avg.lon);
+        GPS_DEBUG_PRINT("\r\n");
         for(filter_index=0;filter_index<valid_data_counter;filter_index++)
         {
-            printf("\r\n");
-            printf("filter_index: %d\r\n",filter_index);
+            GPS_DEBUG_PRINT("\r\n");
+            GPS_DEBUG_PRINT("filter_index: %d\r\n",filter_index);
             avg_distance.lat = abs(lat_data[filter_index]-scanning_avg.lat);
             avg_distance.lon = abs(lon_data[filter_index]-scanning_avg.lon);
-            printf("lat_data:%d\r\n",lat_data[filter_index]);
-            printf("lon_data:%d\r\n",lon_data[filter_index]);
-            printf("avg_distance.lat: %d\r\n", avg_distance.lat);
-            printf("avg_distance.lon: %d\r\n", avg_distance.lon);
+            GPS_DEBUG_PRINT("lat_data:%d\r\n",lat_data[filter_index]);
+            GPS_DEBUG_PRINT("lon_data:%d\r\n",lon_data[filter_index]);
+            GPS_DEBUG_PRINT("avg_distance.lat: %d\r\n", avg_distance.lat);
+            GPS_DEBUG_PRINT("avg_distance.lon: %d\r\n", avg_distance.lon);
             
 
             if(avg_distance.lat < delta_avg.lat && avg_distance.lon < delta_avg.lon )
             {
-                printf("filtered lat: %d\r\n",lat_data[filter_index]);
-                printf("filtered lon: %d\r\n",lon_data[filter_index]);
+                GPS_DEBUG_PRINT("filtered lat: %d\r\n",lat_data[filter_index]);
+                GPS_DEBUG_PRINT("filtered lon: %d\r\n",lon_data[filter_index]);
                 #ifdef Weight_average
                 filter_sum.lat += (lat_data[filter_index]*rssi_data[filter_index]);
                 filter_sum.lon += (lon_data[filter_index]*rssi_data[filter_index]);
@@ -287,7 +302,7 @@ void get_cordanates(void *pvParameters)
         }
         else
         {
-            printf("too many variance\r\n");
+            GPS_DEBUG_PRINT("too many variance\r\n");
         }
 
         delta_sum.lat=0;
@@ -298,18 +313,17 @@ void get_cordanates(void *pvParameters)
         filter_sum.lon=0;
         memset(lat_data,'\0',MAX_VALID_DATA);
         memset(lon_data,'\0',MAX_VALID_DATA);
-        printf("average lat: 20.%d\r\n",scanning_avg.lat);
-        printf("average lon: -103.%d\r\n",scanning_avg.lon);
-        printf("valid data number: %d\r\n",filter_data_size);
+        GPS_DEBUG_PRINT("average lat: 20.%d\r\n",scanning_avg.lat);
+        GPS_DEBUG_PRINT("average lon: -103.%d\r\n",scanning_avg.lon);
+        GPS_DEBUG_PRINT("valid data number: %d\r\n",filter_data_size);
         MQTT_start();
         vTaskDelay(1000/portTICK_RATE_MS);
-        xSemaphoreGive(Scan_semaphore);
     }
     else
     {
         vTaskDelay(1000/portTICK_RATE_MS);
         xSemaphoreGive(Scan_semaphore);
-        printf("valid data number: %d\r\n",filter_data_size);
+        GPS_DEBUG_PRINT("valid data number: %d\r\n",filter_data_size);
     }
     
     vTaskDelete(NULL);
