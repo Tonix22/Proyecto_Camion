@@ -114,7 +114,7 @@ void scan_done(void *arg, STATUS status)
             
         }
         free(ssid);
-        
+
         if(connected == false)
         {
             wifi_init();
@@ -122,6 +122,7 @@ void scan_done(void *arg, STATUS status)
         }
         else
         {
+            vTaskDelay(5000/portTICK_RATE_MS);
             xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 2, NULL );
         }
     } 
