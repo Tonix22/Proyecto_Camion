@@ -11,6 +11,7 @@ extern void get_cordanates(void *pvParameters);
 SemaphoreHandle_t Scan_semaphore = NULL;
 
 bool connected = false;
+bool once = false;
 uint8_t fail_counter = 0;
 /******************************************************************************
  * FunctionName : network_init
@@ -40,7 +41,11 @@ void network_init(System_Event_t *evt)
             printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
-            mqtt_init();
+            if(once==false)
+            {
+                once = true;
+                mqtt_init();
+            }
             xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 3, NULL );
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
@@ -108,8 +113,8 @@ void scan_done(void *arg, STATUS status)
             i++;
             
         }
-
         free(ssid);
+        
         if(connected == false)
         {
             wifi_init();
@@ -126,13 +131,10 @@ void scan_done(void *arg, STATUS status)
         fail_counter++;
         printf("scan fail !!!\r\n");
         printf("try: %d",fail_counter);
-        if(fail_counter > 2)
-        {
-            wifi_station_disconnect();
-            connected = false;
-        }
+        vTaskDelay(1000/portTICK_RATE_MS);
         if(fail_counter == 4)
         {
+            printf("system will restart\r\n");
             system_restart();
         }
     }
