@@ -57,11 +57,8 @@ void messageArrived(MessageData* data)
 {
     printf("Message arrived: %s\n", data->message->payload);
 }
-
-void mqtt_client_thread(void* pvParameters)
+void MQTT_set(void)
 {
-    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
-    printf("NetworkConnect is %i\r\n", rc);
     if(MQTT_READY == FALSE)
     {
         MQTTPacket_connectData connectData = MQTTPacket_connectData_initializer;
@@ -71,12 +68,17 @@ void mqtt_client_thread(void* pvParameters)
         connectData.clientID.cstring = "MyFirstMQTT";// HOW I WILL BE CALLED
         rc = MQTTConnect(&client, &connectData);
         printf("MQTTConnect is %i\r\n", rc);
-        if(rc ==0)
+        if(rc == 0)
         {
             MQTT_READY = TRUE;
         }
     }
-
+}
+void mqtt_client_thread(void* pvParameters)
+{
+    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
+    printf("NetworkConnect is %i\r\n", rc);
+    MQTT_set();
     if(rc == 0)
     {
 		if(xSemaphoreTake(MQTT_semaphore, ( TickType_t ) 1000 ) == pdTRUE)
@@ -100,28 +102,30 @@ void mqtt_client_thread(void* pvParameters)
 
                 rc = MQTTPublish(&client, "EmilioTonix/feeds/subidas", message);
 
-                if (rc != 0) 
+                while(rc!=0)
                 {
                     printf("SUB NAK\r\n");
                     MQTT_READY = FALSE;
-                } 
-                else 
-                {
-                    printf("SUB AKK\r\n");
+                    close(network.my_socket);
+                    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
+                    MQTT_set();
+                    rc = MQTTPublish(&client, "EmilioTonix/feeds/subidas", message);
                 }
+                printf("SUB AKK\r\n");
 
                 number_to_string(pasajeros,payload);
                 rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", message);
 
-                if (rc != 0) 
+                while(rc!=0)
                 {
-                    printf("FEDD NAK\r\n");
+                    printf("SUB NAK\r\n");
                     MQTT_READY = FALSE;
-                } 
-                else 
-                {
-                    printf("FEED AKK\r\n");
+                    close(network.my_socket);
+                    rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
+                    MQTT_set();
+                    rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", message);
                 }
+                printf("SUB AKK\r\n");
                 
                 free(payload);
                 free(message);

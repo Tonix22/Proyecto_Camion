@@ -10,4 +10,5 @@ static void messageArrived(MessageData* data);
 void mqtt_client_thread(void* pvParameters);
 int mqtt_init(void);
 static void number_to_string(uint16_t val,uint8_t *string);
+void MQTT_set(void);
 #endif
