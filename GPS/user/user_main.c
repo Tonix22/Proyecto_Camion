@@ -23,6 +23,7 @@
  */
 
 #include "esp_common.h"
+#include "gps.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
@@ -38,6 +39,9 @@
  * Parameters   : none
  * Returns      : rf cal sector
 *******************************************************************************/
+extern uint8 MAC_ADDRES[10][20];
+extern signed char Streght[10];
+extern MAC_SIZE;
 uint32 user_rf_cal_sector_set(void)
 {
     flash_size_map size_map = system_get_flash_size_map();
@@ -78,23 +82,36 @@ uint32 user_rf_cal_sector_set(void)
 void scan_done(void *arg, STATUS status)
 {
     printf("now doing the scan_done... \n");
-    uint8 ssid[33];
-    char temp[128];
-    if (status == OK) {
+    uint8* ssid = malloc(33);
+    uint8 i=0;
+    if (status == OK) 
+    {
         struct bss_info *bss_link = (struct bss_info *) arg;
-        while (bss_link != NULL) {
+        while (bss_link != NULL) 
+        {
             memset(ssid, 0, 33);
             if (strlen(bss_link->ssid) <= 32)
                 memcpy(ssid, bss_link->ssid, strlen(bss_link->ssid));
             else
                 memcpy(ssid, bss_link->ssid, 32);
-            printf("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n", bss_link->authmode, ssid, bss_link->rssi,
+            printf("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n\r\n", bss_link->authmode, ssid, bss_link->rssi,
                     MAC2STR(bss_link->bssid), bss_link->channel);
+
+            sprintf(MAC_ADDRES[i],MACSTR,MAC2STR(bss_link->bssid));
+            //printf("MAC: %s\r\n",MAC_ADDRES[i]);
+            Streght[i] = bss_link->rssi;
+            
             bss_link = bss_link->next.stqe_next;
+            i++;
+            MAC_SIZE++;
         }
-    } else {
+    } 
+    else 
+    {
         printf("scan fail !!!\r\n");
     }
+    free(ssid);
+    wifi_init();
 }
 
 void scan_ap_init(void)

@@ -80,19 +80,6 @@ uart0_write_char(char c)
     }
 }
 
-void char_write(char c)
-{
-    if (c == '\n') 
-    {
-        uart_tx_one_char(UART0, '\r');
-        uart_tx_one_char(UART0, '\n');
-    } 
-    else 
-    {
-        uart_tx_one_char(UART0, c);
-    }
-}
-
 LOCAL void
 uart_rx_intr_handler_ssc(void *arg)
 {
