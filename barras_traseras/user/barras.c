@@ -4,7 +4,7 @@
 #include "esp_common.h"
 #include "user_config.h"
 #include "gpio_config.h"
-#include "../tcp_client/tcp_client.h"
+#include "udp_client.h"
 #include "freeRTOS_wrapper.h"
 
 #define GPIO_READ(gpio_read) GPIO_INPUT_GET(gpio_read)
@@ -17,8 +17,10 @@
 extern QueueHandle_t gpio_state_queue;
 extern SemaphoreHandle_t gpio_bar_semaphore;
 
-extern struct espconn tcp_client;
-struct espconn* tcp_server_local;
+extern struct espconn udp_client;
+
+struct espconn* udp_server_local;
+
 uint8_t BAJAR[]="0Bajada";
 uint8_t SUBIR[]="1Subida";
 uint8_t OBS[]="2Obstruct";
@@ -50,7 +52,9 @@ void barras_traseras_task(void *pvParameters)
 	Set_timer(false_move,false_move_check);
 	Set_timer(obs_check,obs_check_function);
 	printf("barras_system_init\r\n");
-	tcp_server_local = &tcp_client;
+
+	udp_server_local = &udp_client;
+
 	while(1)
 	{
 		if(xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 100 ) == pdTRUE)
@@ -119,7 +123,7 @@ void obs_check_function (void)
 			obstruccion = 0;
 			printf("obs sec: %d \n",barras_data.obs);
 			state = OBSTRUCCION;
-			espconn_send(tcp_server_local, OBS, strlen(OBS));
+			espconn_send(udp_server_local, OBS, strlen(OBS));
 		}
 		Obst_Timer();
 	}
@@ -131,14 +135,14 @@ void obs_check_function (void)
 			barras_data.bajadas++;
 			printf("bajada: %d \n",barras_data.bajadas);
 			state = BAJADA;
-			espconn_send(tcp_server_local, BAJAR, strlen(BAJAR));
+			espconn_send(udp_server_local, BAJAR, strlen(BAJAR));
 		}
 		if(subir_flag == true)
 		{
 			barras_data.subidas++;
 			printf("subida: %d \n",barras_data.subidas);
 			state = SUBIDA;
-			espconn_send(tcp_server_local, SUBIR, strlen(SUBIR));
+			espconn_send(udp_server_local, SUBIR, strlen(SUBIR));
 		}
 		obstruccion   = 0;
 		Clear_bar_flags();

@@ -121,15 +121,15 @@ void i2c_test_task(void* pvParameters)
     //7 bit Address + LSB=0 for write command
     i2c_master_writeByte(mpu6050 << 1 | 0);
     Acknowledge = i2c_master_getAck();
-
+    printf("akk: %d\r\n",Acknowledge);
     //Power Mode
     i2c_master_writeByte(0x6B);
     Acknowledge = i2c_master_getAck();
-
+    printf("akk: %d\r\n",Acknowledge);
     //On MPU6050
     i2c_master_writeByte(0x00);
     Acknowledge = i2c_master_getAck();
-
+    printf("akk: %d\r\n",Acknowledge);
     i2c_master_stop();
     i2c_master_start();
 
@@ -137,21 +137,34 @@ void i2c_test_task(void* pvParameters)
     {
         i2c_master_writeByte(0x68 << 1 | 0);
         Acknowledge = i2c_master_getAck();
+        printf("akk 0x68: %d\r\n",Acknowledge);
+
         i2c_master_writeByte(0x3B);
         Acknowledge = i2c_master_getAck();
+        printf("akk 0x3B: %d\r\n",Acknowledge);
+
         i2c_master_start();
         i2c_master_writeByte(0x68 << 1 | 1);
         Acknowledge = i2c_master_getAck();
+        printf("akk 0x68: %d\r\n",Acknowledge);
 
         printf("start MPU6050");
         Accelerometer_X1 = i2c_master_readByte();
         i2c_master_setAck(0);
+        printf("Accel X1: %d\r\n",Accelerometer_X1);
+
         Accelerometer_X2 = i2c_master_readByte();
         i2c_master_setAck(0);
+        printf("Accel X2: %d\r\n",Accelerometer_X2);
+
         Accelerometer_Y1 = i2c_master_readByte();
         i2c_master_setAck(0);
+        printf("Accel Y1: %d\r\n",Accelerometer_Y1);
+
         Accelerometer_Y2 = i2c_master_readByte();
         i2c_master_setAck(0);
+        printf("Accel Y2: %d\r\n",Accelerometer_Y2);
+
         Accelerometer_Z1 = i2c_master_readByte();
         i2c_master_setAck(0);
         Accelerometer_Z2 = i2c_master_readByte();
@@ -191,7 +204,7 @@ void i2c_test_task(void* pvParameters)
         printf("Gyx :%d\n", Gyx);
         printf("Gyy :%d\n", Gyy);
         printf("Gyz :%d\n", Gyz);
-        vTaskDelay(200);  //Delay for 200milli seconds
+        vTaskDelay(1000/portTICK_RATE_MS);
     }
     vTaskDelete(NULL);
 }

@@ -23,6 +23,7 @@
  */
 
 #include "esp_common.h"
+#include "network.h"
 #include "gps.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -39,9 +40,6 @@
  * Parameters   : none
  * Returns      : rf cal sector
 *******************************************************************************/
-extern uint8 MAC_ADDRES[10][20];
-extern signed char Streght[10];
-extern MAC_SIZE;
 uint32 user_rf_cal_sector_set(void)
 {
     flash_size_map size_map = system_get_flash_size_map();
@@ -79,48 +77,6 @@ uint32 user_rf_cal_sector_set(void)
     return rf_cal_sec;
 }
 
-void scan_done(void *arg, STATUS status)
-{
-    printf("now doing the scan_done... \n");
-    uint8* ssid = malloc(33);
-    uint8 i=0;
-    if (status == OK) 
-    {
-        struct bss_info *bss_link = (struct bss_info *) arg;
-        while (bss_link != NULL) 
-        {
-            memset(ssid, 0, 33);
-            if (strlen(bss_link->ssid) <= 32)
-                memcpy(ssid, bss_link->ssid, strlen(bss_link->ssid));
-            else
-                memcpy(ssid, bss_link->ssid, 32);
-            printf("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n\r\n", bss_link->authmode, ssid, bss_link->rssi,
-                    MAC2STR(bss_link->bssid), bss_link->channel);
-
-            sprintf(MAC_ADDRES[i],MACSTR,MAC2STR(bss_link->bssid));
-            //printf("MAC: %s\r\n",MAC_ADDRES[i]);
-            Streght[i] = bss_link->rssi;
-            
-            bss_link = bss_link->next.stqe_next;
-            i++;
-            MAC_SIZE++;
-        }
-    } 
-    else 
-    {
-        printf("scan fail !!!\r\n");
-    }
-    free(ssid);
-    wifi_init();
-}
-
-void scan_ap_init(void)
-{
-	vTaskDelay(200);
-	wifi_set_opmode(STATIONAP_MODE);
-	wifi_station_scan(NULL,scan_done);
-	printf("now entering the scan AP test..... \n");
-}
 
 /******************************************************************************
  * FunctionName : user_init
@@ -128,13 +84,12 @@ void scan_ap_init(void)
  * Parameters   : none
  * Returns      : none
 *******************************************************************************/
-void Mein_Task (void *pvParameters)
-{
-    scan_ap_init();
-    vTaskDelete(NULL);
-}
+
 void user_init(void)
 {
     printf("SDK version:%s\n", system_get_sdk_version());
-	xTaskCreate( Mein_Task, (signed char *)"Der Task", 256, NULL, 2, NULL );
+    /**********************************************************************
+     * This task makes wifi scanning for all SSDIS surroding
+    ***********************************************************************/
+	xTaskCreate( Scan_Task, (signed char *)"Scanning", 256, NULL, 4, NULL );
 }

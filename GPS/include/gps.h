@@ -1,7 +1,12 @@
 #ifndef __GPS_H__
 #define __GPS_H__
 
-
+#define MAXROUTERS 20
+#define MAX_VALID_DATA 10
+#define HISTORY_SIZE 10
+//#define Weight_average
+#define THRESHOLD_LAT 6000
+#define THRESHOLD_LON 8000
 #define pheadbuffer "Connection: keep-alive\r\n\
 Cache-Control: max-age=0\r\n\
 Upgrade-Insecure-Requests: 1\r\n\
@@ -17,6 +22,11 @@ Accept-Language: es-US,es;q=0.9,en-US;q=0.8,en;q=0.7,es-419;q=0.6\r\n\r\n"
 void get_cordanates(void *pvParameters);
 void http_parse(char* info);
 void JSON_parse(char *word);
+bool Data_Result(char * string);
+int integer_part(void);
+char * location(void);
+void MQTT_start(void);
+void HISTORY_AVR(void);
 
 typedef enum {
   IDLE,
@@ -31,9 +41,8 @@ typedef enum {
 
 typedef struct
 {
-    uint32_t decimal_average;
-    uint32_t sum;
-    uint32_t weight_sum;
+  int lat;
+  int lon;
 }cordenate;
 
 

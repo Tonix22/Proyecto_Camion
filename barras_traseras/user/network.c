@@ -1,6 +1,6 @@
 #include "esp_common.h"
 #include "user_config.h"
-#include "../tcp_client/tcp_client.h"
+#include "udp_client.h"
 
 void network_init(System_Event_t *evt)
 {
@@ -20,7 +20,8 @@ void network_init(System_Event_t *evt)
             printf("ip:" IPSTR ",mask:" IPSTR ",gw:" IPSTR, IP2STR(&evt->event_info.got_ip.ip),
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
-            TcpLocalClient();
+            //TcpLocalClient();
+
             break;
         default:
             break;
