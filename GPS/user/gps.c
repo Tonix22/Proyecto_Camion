@@ -116,14 +116,6 @@ void get_cordanates(void *pvParameters)
     /*check all the mac addreses gotten*/
     while (i<MAC_SIZE) 
 	{
-        memset(JSON_DATA,0,sizeof(JSON_DATA));
-        memset(result,0,sizeof(result));
-        memset(lat,0,sizeof(lat));
-        memset(lon,0,sizeof(lon));
-        memset(range_error,0,sizeof(range_error));
-    
-        printf("\r\n");
-        printf("MAC number: %d\r\n",i);  
         //CHECK SOCKET STATUS
         MAC_add = MAC_ADDRES[i];
         ssid = Streght[i];

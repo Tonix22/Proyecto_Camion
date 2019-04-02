@@ -40,6 +40,7 @@
  * Parameters   : none
  * Returns      : rf cal sector
 *******************************************************************************/
+
 uint32 user_rf_cal_sector_set(void)
 {
     flash_size_map size_map = system_get_flash_size_map();
