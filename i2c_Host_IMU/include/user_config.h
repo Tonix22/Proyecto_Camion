@@ -25,18 +25,5 @@
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
 
-#define House
-#ifdef House
-#define SSID "IZZI-99CD"
-#define PASS "704FB81799CD"
-#endif
-
-//#define SSID "Moto Z2 Play 3644"
-//#define PASS "5ce82952cda2"
-
-#ifdef CASALUIS
-#define SSID "Totalplay-D99D"
-#define PASS "D99D0F668bD8Y63W"
-#endif
 #endif
 

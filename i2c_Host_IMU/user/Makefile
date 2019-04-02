@@ -12,7 +12,7 @@
 #     a generated lib/image xxx.a ()
 #
 ifndef PDIR
-GEN_LIBS = my_mqtt_lib.a
+GEN_LIBS = libuser.a
 endif
 
 

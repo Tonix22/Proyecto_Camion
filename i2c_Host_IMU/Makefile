@@ -22,7 +22,9 @@ GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
-    user
+	user    \
+    driver	
+	
 
 endif # } PDIR
 
@@ -45,7 +47,8 @@ ifeq ($(FLAVOR),release)
 endif
 
 COMPONENTS_eagle.app.v6 = \
-    user/libuser.a
+	user/libuser.a  \
+	driver/libdriver.a
 
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDK_PATH)/lib        \
@@ -73,11 +76,9 @@ LINKFLAGS_eagle.app.v6 = \
 	-lpp	\
 	-lpwm	\
 	-lsmartconfig	\
-	-lmbedtls		\
 	-lspiffs	\
-	-lopenssl               \
+	-lssl	\
 	-lwpa	\
-	-lmqtt    \
 	-lwps		\
 	$(DEP_LIBS_eagle.app.v6)					\
 	-Wl,--end-group
@@ -100,7 +101,7 @@ DEPENDS_eagle.app.v6 = \
 #	-DTXRX_TXBUF_DEBUG
 #	-DTXRX_RXBUF_DEBUG
 #	-DWLAN_CONFIG_CCX
-CONFIGURATION_DEFINES =	-DICACHE_FLASH -DMQTT_TASK
+CONFIGURATION_DEFINES =	-DICACHE_FLASH
 
 DEFINES +=				\
 	$(UNIVERSAL_TARGET_DEFINES)	\
@@ -123,7 +124,7 @@ DDEFINES +=				\
 # Required for each makefile to inherit from the parent
 #
 
-INCLUDES := $(INCLUDES) -I $(PDIR)include
+INCLUDES := $(INCLUDES) -I $(PDIR)include -I $(PDIR)include/driver
 sinclude $(SDK_PATH)/Makefile
 
 .PHONY: FORCE
