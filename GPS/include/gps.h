@@ -3,6 +3,7 @@
 
 #define MAXROUTERS 20
 #define MAX_VALID_DATA 10
+#define HISTORY_SIZE 10
 //#define Weight_average
 #define THRESHOLD_LAT 6000
 #define THRESHOLD_LON 8000
@@ -25,6 +26,7 @@ bool Data_Result(char * string);
 int integer_part(void);
 char * location(void);
 void MQTT_start(void);
+void HISTORY_AVR(void);
 
 typedef enum {
   IDLE,

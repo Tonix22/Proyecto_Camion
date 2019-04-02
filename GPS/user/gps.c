@@ -83,6 +83,12 @@ uint8_t filter_data_size;
 uint8_t filter_index;
 //HTTPVARS
 char pbuf [512];
+//time filter
+cordenate history[HISTORY_SIZE]={0};
+cordenate history_avr;
+cordenate history_sum;
+
+uint8_t history_index=0;
 
 
 void get_cordanates(void *pvParameters)
@@ -316,6 +322,8 @@ void get_cordanates(void *pvParameters)
         GPS_DEBUG_PRINT("average lat: 20.%d\r\n",scanning_avg.lat);
         GPS_DEBUG_PRINT("average lon: -103.%d\r\n",scanning_avg.lon);
         GPS_DEBUG_PRINT("valid data number: %d\r\n",filter_data_size);
+        // For future use
+        //HISTORY_AVR();
         MQTT_start();
         vTaskDelay(1000/portTICK_RATE_MS);
     }
@@ -342,6 +350,26 @@ void MQTT_start(void)
     NULL,
     3,
     NULL);
+}
+void HISTORY_AVR(void)
+{
+    uint8_t i=0;
+    history[history_index] = scanning_avg;
+    
+    if(history_index<HISTORY_SIZE)
+    {
+        for(i=0;i<history_index;i++)
+        {
+            history_sum.lat += history[i].lat;
+            history_sum.lon += history[i].lon;
+        }
+        history_avr.lat=history_sum.lat/HISTORY_SIZE;
+        history_avr.lon=history_sum.lon/HISTORY_SIZE;
+    }
+    else
+    {
+        history_index=0;
+    }
 }
 void http_parse(char* info)
 {
