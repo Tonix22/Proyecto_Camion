@@ -3,12 +3,14 @@
 #include "gps.h"
 #include "MQTT_task.h"
 #include "freeRTOS_wrapper.h"
+#define NETWORK_DEBUG
 #ifdef NETWORK_DEBUG
     #define NETWORK_DEBUG_PRINT printf
 #else
     #define NETWORK_DEBUG_PRINT
 #endif
 
+#define MAX_TRIES 4
 
 extern uint8 MAC_ADDRES[MAXROUTERS][20];
 extern signed char Streght[MAXROUTERS];
@@ -88,6 +90,13 @@ void wifi_init(void)
     /*when connection is ready it will jump to the network_init callback*/
     wifi_station_connect();
 }
+
+/******************************************************************************
+ * FunctionName : scan_done
+ * Description  : Does scanning and task creating of gps setpoing average
+ * Parameters   : status
+ * Returns      : none
+*******************************************************************************/
 void scan_done(void *arg, STATUS status)
 {
     NETWORK_DEBUG_PRINT("now doing the scan_done... \n");
@@ -98,15 +107,23 @@ void scan_done(void *arg, STATUS status)
     {
         fail_counter = 0;
         struct bss_info *bss_link = (struct bss_info *) arg;
+
         while (bss_link != NULL) 
         {
             memset(ssid, 0, 33);
             if (strlen(bss_link->ssid) <= 32)
+            {
                 memcpy(ssid, bss_link->ssid, strlen(bss_link->ssid));
+            }
             else
+            {
                 memcpy(ssid, bss_link->ssid, 32);
+            }
+                
             NETWORK_DEBUG_PRINT("(%d,\"%s\",%d,\""MACSTR"\",%d)\r\n\r\n", bss_link->authmode, ssid, bss_link->rssi,
-                    MAC2STR(bss_link->bssid), bss_link->channel);
+            MAC2STR(bss_link->bssid), bss_link->channel);
+
+            /* saving all MAC_ADDRESS and rssi */
 
             if(MAC_SIZE < MAXROUTERS)
             {
@@ -122,11 +139,13 @@ void scan_done(void *arg, STATUS status)
 
         if(connected == false)
         {
+            //wifi_station_disconnect();
             wifi_init();
             connected = true;
         }
         else
         {
+            //GPS TASK AVERAGE TASK
             xTaskCreate( get_cordanates, (signed char *)"GPS", 4096, NULL, 2, NULL );
         }
     } 
@@ -134,10 +153,13 @@ void scan_done(void *arg, STATUS status)
     {
         xSemaphoreGive(Scan_semaphore);
         fail_counter++;
+
         NETWORK_DEBUG_PRINT("scan fail !!!\r\n");
         NETWORK_DEBUG_PRINT("try: %d",fail_counter);
+
         vTaskDelay(1000/portTICK_RATE_MS);
-        if(fail_counter == 4)
+
+        if(fail_counter == MAX_TRIES)
         {
             NETWORK_DEBUG_PRINT("system will restart\r\n");
             system_restart();
@@ -147,15 +169,16 @@ void scan_done(void *arg, STATUS status)
 void Scan_Task (void *pvParameters)
 {
     Scan_semaphore = xSemaphoreCreateMutex();
-    wifi_set_opmode(STATIONAP_MODE);
+    wifi_set_opmode(STATION_MODE);
+    wifi_station_disconnect();
     while(1)
     {
-        if(xSemaphoreTake(Scan_semaphore, ( TickType_t ) 1000 ) == pdTRUE)
+        if(xSemaphoreTake(Scan_semaphore, ( TickType_t ) 500/portTICK_RATE_MS ) == pdTRUE)
         {
-            vTaskDelay(1000/portTICK_RATE_MS);
+            //scan_done is the callback to the scan task
             wifi_station_scan(NULL,scan_done);
         }
-        vTaskDelay(1000/portTICK_RATE_MS);
+        vTaskDelay(500/portTICK_RATE_MS);
     }
     vTaskDelete(NULL);
 }

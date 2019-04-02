@@ -89,5 +89,8 @@ uint32 user_rf_cal_sector_set(void)
 void user_init(void)
 {
     printf("SDK version:%s\n", system_get_sdk_version());
+    /**********************************************************************
+     * This task makes wifi scanning for all SSDIS surroding
+    ***********************************************************************/
 	xTaskCreate( Scan_Task, (signed char *)"Scanning", 256, NULL, 4, NULL );
 }

@@ -27,8 +27,8 @@
 
 #define House
 #ifdef House
-#define SSID "HOME-5818"
-#define PASS "C900797AAD34D8AB"
+#define SSID "IZZI-99CD"
+#define PASS "704FB81799CD"
 #endif
 
 //#define SSID "Moto Z2 Play 3644"

@@ -12,8 +12,8 @@
 #include "MQTT_task.h"
 
 //#define GPS_DEBUG
-#define ERROR_DEBUG
-
+//#define ERROR_DEBUG
+//#define HTTP_DEBUG
 #ifdef GPS_DEBUG
     #define GPS_DEBUG_PRINT printf
 #else
@@ -98,7 +98,6 @@ void get_cordanates(void *pvParameters)
     int sin_size;
     int sta_socket;
     struct sockaddr_in remote_ip;
-    //char *pbuf = (char *) zalloc(512);
     memset(pbuf,'\0',512);
     int http_valid_request;
     char *http_token;
@@ -114,6 +113,7 @@ void get_cordanates(void *pvParameters)
     filter_data_size = 0;
     i = 0;
 
+    /*check all the mac addreses gotten*/
     while (i<MAC_SIZE) 
 	{
         //CHECK SOCKET STATUS
@@ -167,12 +167,15 @@ void get_cordanates(void *pvParameters)
         {
             //HERE GET THE HTTP PACKETS
             recbytes = read(sta_socket, recv_buf, 1460);
-            //GPS_DEBUG_PRINT("debug buffer:%s\r\n\r\n",recv_buf);
-            //Valid HTTP packet not fail
+            #ifdef HTTP_DEBUG
+                printf("**************************\r\n");
+                printf("%s\r\n",recv_buf);
+                printf("**************************\r\n");
+                vTaskDelay(5000/portTICK_RATE_MS);
+            #endif
+            vTaskDelay(800/portTICK_RATE_MS);//this is hardcoded due to system works
             http_token = strtok(recv_buf," ");
             http_token = strtok(NULL," ");
-            //http_valid_request = atoi(http_token);//check if it 200 meaning good request
-            //if(http_valid_request == 200)
             if(http_token[0] == '2')
             {
                 http_parse(recv_buf);
@@ -242,7 +245,6 @@ void get_cordanates(void *pvParameters)
             GPS_ERR_PRINT("bare data, buffer empty!\r\n");
             close(sta_socket);
         }
-        vTaskDelay(300/portTICK_RATE_MS);
         i++;
     }
      GPS_DEBUG_PRINT("http end\r\n");
@@ -319,6 +321,7 @@ void get_cordanates(void *pvParameters)
         filter_sum.lon=0;
         memset(lat_data,'\0',MAX_VALID_DATA);
         memset(lon_data,'\0',MAX_VALID_DATA);
+        //20 and -103 are hardcoded
         GPS_DEBUG_PRINT("average lat: 20.%d\r\n",scanning_avg.lat);
         GPS_DEBUG_PRINT("average lon: -103.%d\r\n",scanning_avg.lon);
         GPS_DEBUG_PRINT("valid data number: %d\r\n",filter_data_size);
