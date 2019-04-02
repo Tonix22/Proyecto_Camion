@@ -6,6 +6,7 @@
 #define MQTT_CLIENT_THREAD_PRIO         8
 
 int mqtt_init(void);
+void MQTT_set(void);
 void mqtt_client_thread(void* pvParameters);
 
 #endif
