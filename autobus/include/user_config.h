@@ -24,10 +24,11 @@
 
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
+
 #define HOUSE
 #ifdef HOUSE
-	#define SSID "HOME-5818"
-	#define PASS "C900797AAD34D8AB"
+	#define SSID "IZZI-99CD"
+	#define PASS "704FB81799CD"
 #else
 	#define SSID "central_comunication"
 	#define PASS "12345678"
