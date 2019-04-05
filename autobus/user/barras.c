@@ -21,7 +21,6 @@ static bool subir_flag    = false;
 static bool bajar_flag    = false;
 static bool obs_flag      = false;
 static bool finish 		  = false;
-
 barras_t barras_data;
 uint8_t obstruccion;
 os_timer_t false_move;
@@ -137,20 +136,19 @@ void obs_check_function (void)
 		}
 		obstruccion   = 0;
 		Clear_bar_flags();
-	}
-	if(MQTT_Queue!=NULL)
-	{
-		xQueueOverwrite(MQTT_Queue, &barras_data);
-	}
-	if(MQTT_semaphore!=NULL)
-	{
-		xSemaphoreGive(MQTT_semaphore);
-		xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
-                      MQTT_CLIENT_THREAD_STACK_WORDS,
-                      NULL,
-                      2,
-                      &mqttc_client_handle);
-	}
-
-	
+			
+		if(MQTT_Queue!=NULL)
+		{
+			xQueueOverwrite(MQTT_Queue, &barras_data);
+		}
+		if(MQTT_semaphore!=NULL)
+		{
+			xSemaphoreGive(MQTT_semaphore);
+			xTaskCreate ( mqtt_client_thread, MQTT_CLIENT_THREAD_NAME,
+						MQTT_CLIENT_THREAD_STACK_WORDS,
+						NULL,
+						2,
+						&mqttc_client_handle);
+		}
+	}	
 }
