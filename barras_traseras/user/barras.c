@@ -34,6 +34,7 @@ event_to_send_t state;
 uint8_t obstruccion;
 os_timer_t false_move;
 os_timer_t obs_check;
+#define GPIO_READ(gpio_read) GPIO_INPUT_GET(gpio_read)
 #define Release(SEMA) xSemaphoreGive(SEMA);
 #define False_Timer() os_timer_arm(&false_move, 8000, 0)
 #define Obst_Timer()  os_timer_arm(&obs_check, 250, 0)
@@ -104,7 +105,7 @@ static void BAR_CHECK (gpio_action_t action)
 
 void false_move_check (void)
 {
-	if((GPIO_INPUT_GET(0)) ^ (GPIO_INPUT_GET(5)))
+	if((GPIO_READ(DER_GPIO)) ^ (GPIO_READ(IZQ_GPIO)))
 	{
 		barras_data.obs+=8;
 		printf("false sec: %d \n",barras_data.obs);
@@ -113,8 +114,8 @@ void false_move_check (void)
 }
 void obs_check_function (void)
 {
-	//os_timer_disarm(&false_move);
-	if((GPIO_INPUT_GET(0) == 0) && (GPIO_INPUT_GET(5)==0))
+
+	if((GPIO_READ(DER_GPIO) == 0) && (GPIO_READ(IZQ_GPIO)==0))
 	{
 		obstruccion++;
 		if(obstruccion == 8)
