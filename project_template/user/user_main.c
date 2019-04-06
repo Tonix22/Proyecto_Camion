@@ -92,6 +92,9 @@ void Mein_Task (void *pvParameters)
 void user_init(void)
 {
     printf("SDK version:%s\n", system_get_sdk_version());
-	printf("Mein Erste Code hier\n");
-	xTaskCreate( Mein_Task, (signed char *)"Der Task", 256, NULL, 2, NULL );
+    #if defined DEBUG
+    printf("DEFINE set on compiler")
+    #endif
+	//printf("Mein Erste Code hier\n");
+	//xTaskCreate( Mein_Task, (signed char *)"Der Task", 256, NULL, 2, NULL );
 }
