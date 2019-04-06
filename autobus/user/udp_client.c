@@ -5,16 +5,23 @@
 #include "user_config.h"
 #include "udp_client.h"
 #include "barras.h"
+#include "freeRTOS_wrapper.h"
+
+extern QueueHandle_t Back_Bar;
+extern SemaphoreHandle_t Clear_back_bar_server;
+
 const uint8 udp_server_ip[4] = { 10, 0, 0, 4 };
 barras_t udp_barr_rcv;
 
 void UdpRecvCb(void *arg, char *pdata, unsigned short len)
 {
     struct espconn* udp_server_local = arg;
+    #ifdef DEBUG
     DBG_LINES("UDP_RECV_CB");
     printf("%s\n",pdata);
     DBG_LINES("END");
     printf("\n");
+    #endif
     if(pdata[0]=='U' && pdata[1]=='P')
     {
         udp_barr_rcv.subidas++;
@@ -27,7 +34,14 @@ void UdpRecvCb(void *arg, char *pdata, unsigned short len)
     {
          udp_barr_rcv.obs++;
     }
-
+    xQueueOverwrite(Back_Bar, &udp_barr_rcv);
+    
+    if(xSemaphoreTake( Clear_back_bar_server, ( TickType_t ) 100 ) == pdTRUE)
+    {
+        udp_barr_rcv.subidas = 0;
+        udp_barr_rcv.bajadas = 0;
+        udp_barr_rcv.obs = 0;
+    }
 }
 void UdpSendCb(void* arg)
 {

@@ -15,7 +15,14 @@
 
 extern QueueHandle_t bar_state_queue;
 extern SemaphoreHandle_t gpio_bar_semaphore;
+
+extern QueueHandle_t MQTT_Queue;
+extern SemaphoreHandle_t MQTT_semaphore;
 extern xTaskHandle mqttc_client_handle;
+
+QueueHandle_t Back_Bar = NULL;
+barras_t Back_bar_counter;
+SemaphoreHandle_t Clear_back_bar_server = NULL;
 
 static bool subir_flag    = false;
 static bool bajar_flag    = false;
@@ -34,8 +41,6 @@ os_timer_t obs_check;
 #define Set_timer(timer,func)  \
 		os_timer_disarm(&timer);\
 		os_timer_setfn(&timer,(os_timer_func_t *)func, NULL);
-extern QueueHandle_t MQTT_Queue;
-extern SemaphoreHandle_t MQTT_semaphore;
 
 void barras_delanteras_task(void *pvParameters)
 {
@@ -44,6 +49,18 @@ void barras_delanteras_task(void *pvParameters)
 
 	Set_timer(false_move,false_move_check);
 	Set_timer(obs_check,obs_check_function);
+
+	Back_Bar  = xQueueCreate(1, sizeof(barras_t));
+	Clear_back_bar_server = xSemaphoreCreateMutex();
+	if(Back_Bar == NULL || Clear_back_bar_server == NULL)
+	{
+		printf("sync back bar error\r\n");
+	}
+	else
+	{
+		xSemaphoreTake( Clear_back_bar_server, ( TickType_t ) 0 );
+	}
+
 	printf("barras_system_init\r\n");
 	
 	while(gpio_bar_semaphore == NULL)
@@ -63,6 +80,13 @@ void barras_delanteras_task(void *pvParameters)
 					BAR_CHECK(access);
 				}
 			}
+		}
+		if(xQueueReceive(Back_Bar, &(Back_bar_counter), ( TickType_t ) 100 ) == pdPASS)
+		{
+			barras_data.subidas+=Back_bar_counter.subidas;
+			barras_data.bajadas+=Back_bar_counter.bajadas;
+			xSemaphoreGive( Clear_back_bar_server);
+			//pending obstruction
 		}
 	}
 }
@@ -109,7 +133,6 @@ void false_move_check (void)
 }
 void obs_check_function (void)
 {
-	//os_timer_disarm(&false_move);
 	if((GPIO_READ(10) == 0) && (GPIO_READ(12)==0))
 	{
 		obstruccion++;
