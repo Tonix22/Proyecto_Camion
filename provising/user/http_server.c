@@ -5,6 +5,10 @@
 #include <string.h>
 #include <stdlib.h>	
 
+unsigned char SSID_data[20]={0};
+unsigned char SSID_pass[30]={0};
+SemaphoreHandle_t Provising = NULL;
+
 #if LWIP_NETCONN
 
 #ifndef HTTPD_DEBUG
@@ -84,8 +88,16 @@ http_server_netconn_serve(struct netconn *conn)
 
           Wifi_pass = strtok(NULL," ");
 
-          printf("Wifi: %s\r\n",WIFI_string);
-          printf("Pass: %s\r\n",Wifi_pass);
+          if(WIFI_string!=NULL && Wifi_pass!=NULL)
+          {
+            memcpy(SSID_data,WIFI_string,strlen(WIFI_string)+1);
+            memcpy(SSID_pass,Wifi_pass,strlen(Wifi_pass)+1);
+            printf("Wifi: %s\r\n",SSID_data);
+            printf("Pass: %s\r\n",SSID_pass);
+          }
+
+          //Semaphore read, data is gotten and thread task delete
+          //xSemaphoreGive(Provising); 
 
         }
 
@@ -143,6 +155,11 @@ http_server_netconn_thread(void *arg)
 void
 http_server_netconn_init(void)
 {
+  Provising = xSemaphoreCreateMutex();
+  if(Provising!=NULL)
+  {
+    xSemaphoreTake( Provising, ( TickType_t ) 0 );
+  }
   xTaskCreate( http_server_netconn_thread, (signed char *)"Thread", 256, NULL, 2, NULL );
 }
 
