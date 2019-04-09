@@ -25,14 +25,26 @@
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
 
-#define HOUSE
-#ifdef HOUSE
-	#define SSID "IZZI-99CD"
-	#define PASS "704FB81799CD"
-#else
-	#define SSID "central_comunication"
-	#define PASS "12345678"
-#endif
+/*WIFI*/
+#define SSID "IZZI-99CD"
+#define PASS "704FB81799CD"
 
+/*MQTT */
+
+/*Mail*/
+
+/*GPIOS*/
+
+/*Tiket Data*/
+
+#define ROUTE "RUTA 27\r\n\0"
+#define BUS_ID "Unidad: 2069\r\n\0"
+#define NORMAL_TICKET "Costo: $7\r\n"
+#define HALD_PRICE_TICKET "Costo: $3.5\r\n"
+#define TRANSVALE "Costo: TRANSVALE\r\n"
+
+/*Printer Commands*/
+
+/*NTP*/
 #endif
 
