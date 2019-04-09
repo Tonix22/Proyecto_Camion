@@ -2,6 +2,8 @@
 #include "lwip/api.h"
 #include "freeRTOS_wrapper.h"
 #include "http_server.h"
+#include <string.h>
+#include <stdlib.h>	
 
 #if LWIP_NETCONN
 
@@ -13,28 +15,27 @@ const static char http_html_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/html\
 //const static char http_index_html[] = "<html><head><title>Congrats!</title></head><body><h1>Welcome to our lwIP HTTP server!</h1><p>This is a small test page, served by httpserver-netconn.</body></html>";
 const static char http_index_html[] = "<!DOCTYPE html>\
 <html>\
-Wifi name: <input type=\"text\" name=\"FirstName\"><br>\
-Password: <input type=\"text\" name=\"LastName\"><br>\
-<input type=\"submit\" value=\"Submit\">\
-<head>\
-<style>\
-body {\
-  background-color: lightblue;\
-}\
-h1 {\
-  color: white;\
-  text-align: center;\
-}\
-p {\
-  font-family: verdana;\
-  font-size: 20px;\
-}\
-</style>\
-</head>\
 <body>\
-<h1>Instalacion de Wifi</h1>\
-<p>Ponga el nombre de su wifi y su contrasena para que funcione el dispositivo.</p>\
-</body>";
+<form>\
+ <fieldset>\
+  <legend>Configuration:</legend>\
+  </form>\
+  <form action=\"/Wifi_Data\">\
+  Wifi: <input type=\"text\" name=\"Wifi\"><br>\
+  Password: <input type=\"password\" name=\"Password\"><br>\
+  <input type=\"submit\" value=\"Submit\">\
+</form>\
+</fieldset>\
+<div style=\"background-color:lightblue\">\
+  <h3>Instrucciones</h3>\
+  <p>Ponga la contrasena del wifi y contrasena de su router.</p>\
+</div>\
+<head>\
+</html>";
+
+char * http_token;
+char * WIFI_string;
+char * Wifi_pass;
 
 /** Serve one HTTP connection accepted in the http thread */
 static void
@@ -54,13 +55,40 @@ http_server_netconn_serve(struct netconn *conn)
     
     /* Is this an HTTP GET command? (only check the first 5 chars, since
     there are other formats for GET, and we're keeping it very simple )*/
+    #ifdef DEBUG
+    printf("*******************\r\n");
+    printf("Data: %s\r\n",buf );
+    printf("*******************\r\n");
+    #endif
     if (buflen>=5 &&
         buf[0]=='G' &&
         buf[1]=='E' &&
         buf[2]=='T' &&
         buf[3]==' ' &&
-        buf[4]=='/' ) {
-      
+        buf[4]=='/' ) 
+      {
+      /*This code tokenize the Http data*/
+        if (
+        buf[5]=='W' &&
+        buf[6]=='i' &&
+        buf[7]=='f' &&
+        buf[8]=='i')
+        {
+          http_token = strtok(buf,"?");
+
+          http_token = strtok(NULL,"=");
+
+          WIFI_string = strtok(NULL,"&");
+
+          http_token = strtok(NULL,"=");
+
+          Wifi_pass = strtok(NULL," ");
+
+          printf("Wifi: %s\r\n",WIFI_string);
+          printf("Pass: %s\r\n",Wifi_pass);
+
+        }
+
       /* Send the HTML header 
              * subtract 1 from the size, since we dont send the \0 in the string
              * NETCONN_NOCOPY: our data is const static, so no need to copy it
