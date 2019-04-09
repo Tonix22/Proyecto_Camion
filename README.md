@@ -15,6 +15,10 @@ Main Folder For working there
 Note: Some files could fail because \r\n just rewrite with\n
 
 ##Pending stuff
+  0. Make barras config parameter more modular, make a config.h
+     here put set data as SSID, PASS, MQTT server, time to send email,
+     GPIOS defs, RUTA, Ticket price, email sender and reciever, ntp server , etc..
+     
   1. Check why barras traseras is not counting obstruction. 
   2. Make an integral validation between barras traseras and delanteras.
   3. MQTT features
