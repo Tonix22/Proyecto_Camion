@@ -56,3 +56,4 @@ tools/FLASH_DOWNLOAD_TOOLS_V3.6.2.2/bin_tmp/downloadPanel1/user1.4096.new.4.bin_
 tools/FLASH_DOWNLOAD_TOOLS_V3.6.2.2/configure/esp8266/multi_download.conf
 tools/FLASH_DOWNLOAD_TOOLS_V3.6.2.2/configure/esp8266/spi_download.conf
 GPS/log.txt
+provising/user/.output/eagle/debug/obj/network.d.5697
