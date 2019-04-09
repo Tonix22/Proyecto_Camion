@@ -10,7 +10,31 @@
 #endif
 
 const static char http_html_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n";
-const static char http_index_html[] = "<html><head><title>Congrats!</title></head><body><h1>Welcome to our lwIP HTTP server!</h1><p>This is a small test page, served by httpserver-netconn.</body></html>";
+//const static char http_index_html[] = "<html><head><title>Congrats!</title></head><body><h1>Welcome to our lwIP HTTP server!</h1><p>This is a small test page, served by httpserver-netconn.</body></html>";
+const static char http_index_html[] = "<!DOCTYPE html>\
+<html>\
+Wifi name: <input type=\"text\" name=\"FirstName\"><br>\
+Password: <input type=\"text\" name=\"LastName\"><br>\
+<input type=\"submit\" value=\"Submit\">\
+<head>\
+<style>\
+body {\
+  background-color: lightblue;\
+}\
+h1 {\
+  color: white;\
+  text-align: center;\
+}\
+p {\
+  font-family: verdana;\
+  font-size: 20px;\
+}\
+</style>\
+</head>\
+<body>\
+<h1>Instalacion de Wifi</h1>\
+<p>Ponga el nombre de su wifi y su contrasena para que funcione el dispositivo.</p>\
+</body>";
 
 /** Serve one HTTP connection accepted in the http thread */
 static void
