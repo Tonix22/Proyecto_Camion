@@ -1,9 +1,8 @@
 #include "esp_common.h"
 #include "user_config.h"
-
+#define GET_WIFI
 static void conn_AP_Init(void);
-os_timer_t acces_point_config;
-os_timer_t MQTT_timer;
+
 /******************************************************************************
  * FunctionName : network_init
  * Description  : Call back for different wifi situations
@@ -121,7 +120,18 @@ void wifi_init(void)
     wifi_set_opmode(STATIONAP_MODE);
     /*Handler to jump when connection is ready*/
     wifi_set_event_handler_cb(network_init);
-
+    #ifdef STATION
     /*Timer set to callback a configuration fucntion*/
     conn_AP_Init();
+    #endif
+    #ifdef GET_WIFI
+    /*station configuration*/
+    struct station_config config;
+    bzero(&config, sizeof(struct station_config));  //set value of config from address of &config to width of size to be value '0'
+    sprintf(config.ssid, SSID); // name of the acces point
+    sprintf(config.password, PASS);
+    wifi_station_set_config(&config);
+    /*when connection is ready it will jump to the network_init callback*/
+    wifi_station_connect();
+    #endif
 }
