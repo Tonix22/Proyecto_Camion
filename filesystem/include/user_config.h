@@ -25,8 +25,5 @@
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
 
-#define FLASH_DATA_SIZE 31
-#define FILE_WROTE 0
-
 #endif
 
