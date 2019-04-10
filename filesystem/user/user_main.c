@@ -27,15 +27,8 @@
 #include "freertos/task.h"
 #include <string.h>
 #include <stdio.h>
+#include "Flash_driver.h"
 
-#define FLASH_DATA_SIZE 50
-
-typedef struct
-{
-    bool Saved;
-    uint8_t SSID_DATA [FLASH_DATA_SIZE];
-    uint8_t PASS_DATA [FLASH_DATA_SIZE];
-}FlashData;
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -94,32 +87,17 @@ uint32 user_rf_cal_sector_set(void)
 void user_init(void)
 {
     printf("SDK version:%s\n", system_get_sdk_version());
-    FlashData *Data_save = (FlashData*)malloc(sizeof(FlashData));
-    FlashData *Data_read = (FlashData*)malloc(sizeof(FlashData));
-
-    spi_flash_read(0x8c000, (uint32 *)Data_read, sizeof(FlashData));
-
-    if(Data_read->Saved == FALSE)
-    {
-        printf("system had been saved");
-    }
-    else
-    {
-        //Data setup to write
-        Data_save->Saved = FALSE;
-        strcpy(Data_save->SSID_DATA, "Axtel_xtremo\r\n");
-        
-        spi_flash_erase_sector(0x8c);
-        vTaskDelay(100);
-        printf("errase ok\r\n");
-        spi_flash_write(0x8c000, (uint32 *) Data_save, sizeof(*Data_save));
-        printf("write ok\r\n");
-        vTaskDelay(100);
-        spi_flash_read(0x8c000, (uint32 *)Data_read, sizeof(*Data_read));
-        printf("read ok\r\n");
-        printf("read: %s\r\n",Data_read->SSID_DATA);
-    }
-    //vTaskDelay(5000/portTICK_RATE_MS);
-    //system_restart();
-
+    Flash_init();
+    set_FLASH_SSID("AXTEL");
+    set_FLASH_PASS("123456");
+    set_FLASH_RUTA("27");
+    set_FLASH_UNIDAD("2038");
+    set_FLASH_EMAIL("emiliotonix@gmail.com");
+    Flash_write();
+    FlashData* RCV = Flash_read();
+    printf("SSID: %s\r\n",RCV->SSID_DATA);
+    printf("PASS: %s\r\n",RCV->PASS_DATA);
+    printf("RUTA: %s\r\n",RCV->RUTA_DATA);
+    printf("UNIDAD: %s\r\n",RCV->UNIDAD_DATA);
+    printf("EMAIL: %s\r\n",RCV->EMAIL_DATA);
 }
