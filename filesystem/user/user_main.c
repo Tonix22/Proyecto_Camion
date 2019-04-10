@@ -29,9 +29,13 @@
 #include <stdio.h>
 
 #define FLASH_DATA_SIZE 50
-#define FILE_WROTE 0
-uint8_t texto[FLASH_DATA_SIZE];
-uint8_t lectura[FLASH_DATA_SIZE];
+
+typedef struct
+{
+    bool Saved;
+    uint8_t SSID_DATA [FLASH_DATA_SIZE];
+    uint8_t PASS_DATA [FLASH_DATA_SIZE];
+}FlashData;
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -80,7 +84,6 @@ uint32 user_rf_cal_sector_set(void)
 
     return rf_cal_sec;
 }
-
 /******************************************************************************
  * FunctionName : user_init
  * Description  : entry of user application, init user function here
@@ -91,30 +94,32 @@ uint32 user_rf_cal_sector_set(void)
 void user_init(void)
 {
     printf("SDK version:%s\n", system_get_sdk_version());
-    
-    spi_flash_read(0x8c000, (uint32 *)lectura, sizeof(lectura));
-    
-    if(lectura[FILE_WROTE]=='W')
+    FlashData *Data_save = (FlashData*)malloc(sizeof(FlashData));
+    FlashData *Data_read = (FlashData*)malloc(sizeof(FlashData));
+
+    spi_flash_read(0x8c000, (uint32 *)Data_read, sizeof(FlashData));
+
+    if(Data_read->Saved == FALSE)
     {
-        printf("flash works after reset\r\n");
+        printf("system had been saved");
     }
     else
     {
-        strcat(texto, "WA");
-        strcat(texto, "SOY UNA VACA");
-        strcat(texto, "LECHERA pum\r\n\0");
-        printf("*********TEXTO BEFORE: %s************ \r\n",texto);
-        vTaskDelay(100);
+        //Data setup to write
+        Data_save->Saved = FALSE;
+        strcpy(Data_save->SSID_DATA, "Axtel_xtremo\r\n");
+        
         spi_flash_erase_sector(0x8c);
         vTaskDelay(100);
         printf("errase ok\r\n");
-        spi_flash_write(0x8c000, (uint32 *) texto, sizeof(texto));
+        spi_flash_write(0x8c000, (uint32 *) Data_save, sizeof(*Data_save));
         printf("write ok\r\n");
         vTaskDelay(100);
-        spi_flash_read(0x8c000, (uint32 *)lectura, sizeof(lectura));
+        spi_flash_read(0x8c000, (uint32 *)Data_read, sizeof(*Data_read));
         printf("read ok\r\n");
-        printf("read: %s\r\n",lectura);
+        printf("read: %s\r\n",Data_read->SSID_DATA);
     }
-
+    //vTaskDelay(5000/portTICK_RATE_MS);
+    //system_restart();
 
 }
