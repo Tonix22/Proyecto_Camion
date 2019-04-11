@@ -4,11 +4,12 @@
 #include "http_server.h"
 #include <string.h>
 #include <stdlib.h>	
+#include "Flash_driver.h"
 
 unsigned char SSID_data[20]={0};
 unsigned char SSID_pass[30]={0};
 SemaphoreHandle_t Provising = NULL;
-#define DEBUG
+//#define DEBUG
 #if LWIP_NETCONN
 
 #ifndef HTTPD_DEBUG
@@ -19,10 +20,8 @@ const static char http_html_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/html\
 //const static char http_index_html[] = "<html><head><title>Congrats!</title></head><body><h1>Welcome to our lwIP HTTP server!</h1><p>This is a small test page, served by httpserver-netconn.</body></html>";
 const static char http_index_html[] = HTMLCODE;
 
-
-char * http_token;
-char * WIFI_string;
-char * Wifi_pass;
+//Callbacks to Flashset
+Flash_func_t Flash_set[6];
 
 /** Serve one HTTP connection accepted in the http thread */
 static void
@@ -61,24 +60,7 @@ http_server_netconn_serve(struct netconn *conn)
         buf[7]=='f' &&
         buf[8]=='i')
         {
-          http_token = strtok(buf,"?");
-
-          http_token = strtok(NULL,"=");
-
-          WIFI_string = strtok(NULL,"&");
-
-          http_token = strtok(NULL,"=");
-
-          Wifi_pass = strtok(NULL," ");
-
-          if(WIFI_string!=NULL && Wifi_pass!=NULL)
-          {
-            memcpy(SSID_data,WIFI_string,strlen(WIFI_string)+1);
-            memcpy(SSID_pass,Wifi_pass,strlen(Wifi_pass)+1);
-            printf("Wifi: %s\r\n",SSID_data);
-            printf("Pass: %s\r\n",SSID_pass);
-          }
-
+          http_paser(buf);
           //Semaphore read, data is gotten and thread task delete
           //xSemaphoreGive(Provising); 
 
@@ -133,7 +115,70 @@ http_server_netconn_thread(void *arg)
   netconn_close(conn);
   netconn_delete(conn);
 }
+void http_paser(char *buf)
+{
+  char * RAW_data;
+  char RAW_data_index=0;
+  char RAW_data_len;
 
+	bool read_begin;
+	bool read_end;
+
+	char string_parsed[30];
+	char parsed_index;
+
+	char callback_index = 0 ;
+	
+  /*if there are files set dont set again
+      This list of callbacks are used
+      to set flash driver data
+  */
+  if(Flash_set[0]==NULL)
+  {
+    Flash_set[0]= &set_FLASH_SSID;
+    Flash_set[1]= &set_FLASH_PASS;
+    Flash_set[2]= &set_FLASH_RUTA;
+    Flash_set[3]= &set_FLASH_UNIDAD;
+    Flash_set[4]= &set_FLASH_COSTO;
+    Flash_set[5]= &set_FLASH_EMAIL;
+    Flash_set[6]= &set_FLASH_EMAIL_TIME;
+  }
+  
+	RAW_data = strtok(buf,"?");
+	RAW_data = strtok(NULL," ");
+	RAW_data_len = strlen(RAW_data);
+  printf("RAW_DATA: %s\r\n",RAW_data);
+	memset(string_parsed,0,sizeof(string_parsed));
+	do
+	{
+	    if(RAW_data[ RAW_data_index ] == '=')
+	    {
+	        read_begin = true;
+	        read_end = false;
+	        RAW_data_index++;
+	        printf("\r\n");
+	        printf("equal detected\r\n");
+	    }
+        if(RAW_data[ RAW_data_index ]=='&' || RAW_data_index == ( RAW_data_len-1))
+        {
+            read_end=true;
+            printf("%s\r\n",string_parsed);
+            
+            Flash_set[callback_index](string_parsed);
+            
+            callback_index++;
+            memset(string_parsed,0,sizeof(string_parsed));
+            parsed_index=0;
+        }
+	    if(read_begin==true && read_end==false)
+	    {
+	    	string_parsed[parsed_index] = RAW_data [ RAW_data_index ];
+        parsed_index++;
+	    }
+	    RAW_data_index++;
+	}
+	while( RAW_data_index < RAW_data_len); 
+}
 /** Initialize the HTTP server (start its thread) */
 void
 http_server_netconn_init(void)

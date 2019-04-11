@@ -1,6 +1,9 @@
 #ifndef __HTTP_SERVER_H__
 #define __HTTP_SERVER_H__
+typedef void (*Flash_func_t)(char* VALUE);
 void http_server_netconn_init(void);
+void http_paser(char *buf);
+
 #define HTMLCODE "<!DOCTYPE html>\
 <head>\
 <style>\
