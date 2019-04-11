@@ -8,7 +8,7 @@
 unsigned char SSID_data[20]={0};
 unsigned char SSID_pass[30]={0};
 SemaphoreHandle_t Provising = NULL;
-
+#define DEBUG
 #if LWIP_NETCONN
 
 #ifndef HTTPD_DEBUG
@@ -17,25 +17,8 @@ SemaphoreHandle_t Provising = NULL;
 
 const static char http_html_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n";
 //const static char http_index_html[] = "<html><head><title>Congrats!</title></head><body><h1>Welcome to our lwIP HTTP server!</h1><p>This is a small test page, served by httpserver-netconn.</body></html>";
-const static char http_index_html[] = "<!DOCTYPE html>\
-<html>\
-<body>\
-<form>\
- <fieldset>\
-  <legend>Configuration:</legend>\
-  </form>\
-  <form action=\"/Wifi_Data\">\
-  Wifi: <input type=\"text\" name=\"Wifi\"><br>\
-  Password: <input type=\"password\" name=\"Password\"><br>\
-  <input type=\"submit\" value=\"Submit\">\
-</form>\
-</fieldset>\
-<div style=\"background-color:lightblue\">\
-  <h3>Instrucciones</h3>\
-  <p>Ponga la contrasena del wifi y contrasena de su router.</p>\
-</div>\
-<head>\
-</html>";
+const static char http_index_html[] = HTMLCODE;
+
 
 char * http_token;
 char * WIFI_string;
@@ -59,11 +42,6 @@ http_server_netconn_serve(struct netconn *conn)
     
     /* Is this an HTTP GET command? (only check the first 5 chars, since
     there are other formats for GET, and we're keeping it very simple )*/
-    #ifdef DEBUG
-    printf("*******************\r\n");
-    printf("Data: %s\r\n",buf );
-    printf("*******************\r\n");
-    #endif
     if (buflen>=5 &&
         buf[0]=='G' &&
         buf[1]=='E' &&
@@ -71,6 +49,11 @@ http_server_netconn_serve(struct netconn *conn)
         buf[3]==' ' &&
         buf[4]=='/' ) 
       {
+        #ifdef DEBUG
+        printf("*******************\r\n");
+        printf("Data: %s\r\n",buf );
+        printf("*******************\r\n");
+        #endif
       /*This code tokenize the Http data*/
         if (
         buf[5]=='W' &&
