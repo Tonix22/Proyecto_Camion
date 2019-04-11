@@ -20,6 +20,8 @@ const static char http_html_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/html\
 //const static char http_index_html[] = "<html><head><title>Congrats!</title></head><body><h1>Welcome to our lwIP HTTP server!</h1><p>This is a small test page, served by httpserver-netconn.</body></html>";
 const static char http_index_html[] = HTMLCODE;
 
+bool end_task;
+
 //Callbacks to Flashset
 Flash_func_t Flash_set[6];
 
@@ -61,9 +63,13 @@ http_server_netconn_serve(struct netconn *conn)
         buf[8]=='i')
         {
           http_paser(buf);
+          netconn_write(conn, http_html_hdr, sizeof(http_html_hdr)-1, NETCONN_NOCOPY);
+          netconn_write(conn, http_index_html, sizeof(http_index_html)-1, NETCONN_NOCOPY);
+          netconn_close(conn);
+          netconn_delete(conn);
+          vTaskDelete(NULL);
           //Semaphore read, data is gotten and thread task delete
-          //xSemaphoreGive(Provising); 
-
+          //xSemaphoreGive(Provising);
         }
 
       /* Send the HTML header 
@@ -74,6 +80,7 @@ http_server_netconn_serve(struct netconn *conn)
       
       /* Send our HTML page */
       netconn_write(conn, http_index_html, sizeof(http_index_html)-1, NETCONN_NOCOPY);
+      
     }
   }
   /* Close the connection (server closes in HTTP) */
@@ -114,6 +121,7 @@ http_server_netconn_thread(void *arg)
     err));
   netconn_close(conn);
   netconn_delete(conn);
+  vTaskDelete(NULL);
 }
 void http_paser(char *buf)
 {
@@ -188,7 +196,7 @@ http_server_netconn_init(void)
   {
     xSemaphoreTake( Provising, ( TickType_t ) 0 );
   }
-  xTaskCreate( http_server_netconn_thread, (signed char *)"Thread", 256, NULL, 2, NULL );
+  xTaskCreate( http_server_netconn_thread, (signed char *)"Thread", 256, NULL, 8, NULL );
 }
 
 #endif /* LWIP_NETCONN*/
