@@ -6,8 +6,6 @@
 #include <stdlib.h>	
 #include "Flash_driver.h"
 
-unsigned char SSID_data[20]={0};
-unsigned char SSID_pass[30]={0};
 SemaphoreHandle_t Provising = NULL;
 //#define DEBUG
 #if LWIP_NETCONN
