@@ -168,12 +168,12 @@ void printer_print_leftover(gpio_action_t ticket_recieved )
 	 if(ticket_recieved == normal)
 	 {
 		 ticket_info.normal++;
-		 printf("Costo: $%d\r\n",PRECIO);/*11 bytes*/
+		 printf("Costo: $%s\r\n",PRECIO);/*11 bytes*/
 	 }
 	 if(ticket_recieved == mitad)
 	 {
 		 ticket_info.mitad++;
-		 printf("Costo: $%d\r\n",MITAD_PRECIO);/*11 bytes*/
+		 printf("Costo: $%s\r\n",MITAD_PRECIO);/*11 bytes*/
 	 }
 	 if(ticket_recieved == transvale)
 	 {

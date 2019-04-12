@@ -38,6 +38,9 @@
 extern bool network_sucess;
 extern SemaphoreHandle_t Provising;
 extern SemaphoreHandle_t ip_connect;
+SemaphoreHandle_t Flash_Ready;
+QueueHandle_t Flash_Flag;
+FlashData* Configuration;
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -98,9 +101,10 @@ void provisioning(void)
 }
 void Flash_thread(void* pvParameters)
 {
+    bool provising = false;
     /*Flash pointers setup*/
     Flash_init();
-    FlashData* Configuration = Flash_read();
+    Configuration = Flash_read();
     printf("Flash data: Configuration->Saved: %d\r\n",Configuration->Saved);
     /*
         Check if data had been written before,
@@ -108,9 +112,12 @@ void Flash_thread(void* pvParameters)
         is ready to be used, else
         set up html provising mode
     */
+    xSemaphoreGive(Flash_Ready);
+    xQueueSend(Flash_Flag, ( void * )&(Configuration->Saved),( portTickType ) 10);
 
     if(0xFF == Configuration->Saved )
     {
+        provising = true;
         /******************************************************************************
         * FunctionName : http_server_netconn_init
         * Description  : Request wifi and printer data and save it into flash
@@ -137,23 +144,28 @@ void Flash_thread(void* pvParameters)
     email_setup(Configuration);
     set_mail_time(Configuration);
     printf("configuration setup end..\r\n");
+
+    if(provising == true)
+    {
+        //update finished
+        system_restart();
+    }
+    
     vTaskDelete(NULL);
 }
 void services_thread(void* pvParameters)
 {
     bool NET_START = TRUE;
     uint8_t try;
-
-    if(ip_connect == NULL)
-    {
-        ip_connect = xSemaphoreCreateMutex();
-    }
+    printf("service thread\r\n");
+    ip_connect = xSemaphoreCreateMutex();
     if(ip_connect!=NULL)
     {
         xSemaphoreTake( ip_connect, ( TickType_t ) 0 );
     }
+    printf("semaphore waiting ip connect..\r\n");
     //Holding while wifi connect
-    while(xSemaphoreTake( ip_connect, ( TickType_t ) msec(5000) ) == pdFALSE);
+    while(xSemaphoreTake( ip_connect, ( TickType_t ) msec(1000) ) == pdFALSE);
     if(network_sucess == FALSE)
     {
         printf("wifi and info data incorrect\r\n");
@@ -225,6 +237,7 @@ void services_thread(void* pvParameters)
 
  void user_init(void)
 {
+    uint8_t system_ready;
     //disable software watchdog
     //system_soft_wdt_feed();
 
@@ -252,10 +265,41 @@ void services_thread(void* pvParameters)
             NAME:central_comunication
             Pass:12345678
     */
-    
+
+    Flash_Ready = xSemaphoreCreateMutex();
+    Flash_Flag = xQueueCreate(1,sizeof(uint8_t));
+    xSemaphoreTake(Flash_Ready,( TickType_t ) 0);
+
     xTaskCreate(Flash_thread,"Flash_thread",2048,NULL,4,NULL);
     printf("Acces Point init\n");
-    conn_AP_Init();
+    while(xSemaphoreTake(Flash_Ready,( TickType_t ) msec(100)) == pdFALSE );
+    vTaskDelay(msec(10));
+    xQueueReceive(Flash_Flag, &(system_ready), ( TickType_t ) 20);
+
+    if(0xFF == system_ready)
+    {
+        conn_AP_Init();
+    }
+    else
+    {
+        vTaskDelay(msec(100));
+        /******************************************************************************
+         * FunctionName : services_thread
+         * Description  : intialize mqtt services, bar check and printer thread, but
+         * before this, it holds the wifi semaphore, which is set when wifi is connected.
+         *  
+         *******************************************************************************/
+        xTaskCreate(services_thread,"services_thread",2048,NULL,4,NULL);
+        vTaskDelay(msec(10));
+        /******************************************************************************
+         * FunctionName : wifi_setup
+         * Description  : gets the data given by flash, and connects to acces point
+         * 
+         *******************************************************************************/
+        wifi_init();
+        //wifi_setup(Configuration);
+    }
+    
 
     #ifdef LOL
     /******************************************************************************
