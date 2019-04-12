@@ -28,14 +28,16 @@
 //#include "user_config.h"
 #include "ntp_time.h"
 #include "printer.h"
-//#include "gpio_config.h"
-//#include "data_base.h"
 #include "barras.h"
 #include "network.h"
-//#include "MQTTEcho.h"
+#include "http_server.h"
+#include "Flash_driver.h"
+#include "Tcp_mail.h"
 
-
+#define msec(milis) milis/portTICK_RATE_MS 
 extern bool network_sucess;
+extern SemaphoreHandle_t Provising;
+extern SemaphoreHandle_t ip_connect;
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -87,12 +89,83 @@ uint32 user_rf_cal_sector_set(void)
 
     return rf_cal_sec;
 }
+void provisioning(void)
+{
+    http_server_netconn_init();
+    /*Wait semaphore to finish provising task*/
+    while(xSemaphoreTake( Provising, ( TickType_t ) 10000/portTICK_RATE_MS ) == pdFALSE);
+    /*Task is deleted after provising*/
+}
+void Flash_thread(void* pvParameters)
+{
+    /*Flash pointers setup*/
+    Flash_init();
+    FlashData* Configuration = Flash_read();
+    printf("Flash data: Configuration->Saved: %d\r\n",Configuration->Saved);
+    /*
+        Check if data had been written before,
+        if the answer is True Flash data 
+        is ready to be used, else
+        set up html provising mode
+    */
+
+    if(0xFF == Configuration->Saved )
+    {
+        /******************************************************************************
+        * FunctionName : http_server_netconn_init
+        * Description  : Request wifi and printer data and save it into flash
+        * HTTP page
+        * Flash save system
+        *******************************************************************************/
+        printf("provising data\r\n");
+        // TURN ON LED YELLOW
+
+        /*save date gotten from htlm request page*/
+        provisioning();
+
+        /*read flash again*/
+        Configuration = Flash_read();
+    }
+
+    /******************************************************************************
+     * FunctionName : printer_init
+     * Description  : Initialize UART1, and create printer task
+     * NTP_Request-->Semaphore 
+     *******************************************************************************/
+    printf("configuration setup begin..\r\n");
+	printer_init(Configuration);
+    email_setup(Configuration);
+    set_mail_time(Configuration);
+    printf("configuration setup end..\r\n");
+    vTaskDelete(NULL);
+}
 void services_thread(void* pvParameters)
 {
     bool NET_START = TRUE;
     uint8_t try;
 
-    vTaskDelay(10000/portTICK_RATE_MS);
+    if(ip_connect == NULL)
+    {
+        ip_connect = xSemaphoreCreateMutex();
+    }
+    if(ip_connect!=NULL)
+    {
+        xSemaphoreTake( ip_connect, ( TickType_t ) 0 );
+    }
+    //Holding while wifi connect
+    while(xSemaphoreTake( ip_connect, ( TickType_t ) msec(5000) ) == pdFALSE);
+    if(network_sucess == FALSE)
+    {
+        printf("wifi and info data incorrect\r\n");
+        //TURN ON LED RED
+    }
+    else
+    {
+         printf("wifi and info data correct\r\n");
+        //TURN ON LED GREEN
+    }
+
+    //vTaskDelay(10000/portTICK_RATE_MS);
 
     while(try<5 && NET_START == TRUE)
     {
@@ -114,7 +187,7 @@ void services_thread(void* pvParameters)
         }
         else
         {
-            vTaskDelay(2000/portTICK_RATE_MS);
+            vTaskDelay(msec(2000));
              try++;
         }
 
@@ -157,39 +230,57 @@ void services_thread(void* pvParameters)
 
     //Change BaudRate to 9600
     uart_user_init();
-    vTaskDelay(2000/portTICK_RATE_MS);
-
     printf("User init\n");
     /******************************************************************************
      * FunctionName : GPIO_init
      * Description  : GPIOS are divided in Bars and printers
      * GPIO 12, 10 --> BARS [DER,IZQ]
      * GPIO 0,4,5  -->[NORMAL,MITAD,TRANSVALE]
+     * TODO : Add reset data button and config state
      *******************************************************************************/
     GPIO_init();
+    /*
+        Get data from flash:
+            Wifi SSID & PASS
+            Ticket info
+            Email setup: user to send and time to send
+    */
 
-    /******************************************************************************
-     * FunctionName : printer_init
-     * Description  : Initialize UART1, and create printer task
-     * NTP_Request-->Semaphore 
-     *******************************************************************************/
-	printer_init();
-
-    xTaskCreate(services_thread,"services_thread",2048,NULL,6,NULL);
-
-    /******************************************************************************
-     * FunctionName : wifi_init
-     * Description  : Station and acces point mode
-        Access point data
+    /*
+        Acces point configuration setup
+            Access point data
             NAME:central_comunication
             Pass:12345678
-        Time_check: ntp server
-            INIT MQTT after ntp services gets time.
-            TcpLocalServer: PORT 1024 
-     *******************************************************************************/
-       /*wifi_init
-
     */
-    wifi_init();
+    
+    xTaskCreate(Flash_thread,"Flash_thread",2048,NULL,4,NULL);
+    printf("Acces Point init\n");
+    conn_AP_Init();
 
+    #ifdef LOL
+    /******************************************************************************
+     * FunctionName : services_thread
+     * Description  : intialize mqtt services, bar check and printer thread, but
+     * before this, it holds the wifi semaphore, which is set when wifi is connected.
+     *  
+     *******************************************************************************/
+    xTaskCreate(services_thread,"services_thread",2048,NULL,6,NULL);
+
+
+    /******************************************************************************
+     * FunctionName : wifi_setup
+     * Description  : gets the data given by flash, and connects to acces point
+     * 
+     *******************************************************************************/
+       
+    
+    /*Wait the semaphore to be created by services_thread*/
+    do
+    {
+        vTaskDelay(msec(100));
+    }
+    while(ip_connect == NULL);
+
+    wifi_setup(Configuration);
+    #endif
 }

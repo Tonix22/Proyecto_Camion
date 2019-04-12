@@ -3,7 +3,6 @@
 #include "espconn.h"
 #include "Tcp_mail.h"
 #include "data_base.h"
-
 /**
 DEFINES
  */
@@ -32,7 +31,8 @@ uint8_t static AUTH_LOGIN[]={"AUTH LOGIN\r\n"};
 uint8_t static USER[]={"ZW1pbGlvdG9uaXhAYnVzZXJ2aWNlLmNvbQ==\r\n"};
 uint8_t static KEY[]={"S2VubmVkeTE5NjMuLi8=\r\n"};
 uint8_t static FROM[]={"MAIL FROM:<emiliotonix@gmail.com>\r\n"};
-uint8_t static TO[]={"RCPT To:<emiliotonix@gmail.com>\r\n"};
+//uint8_t static TO[]={"RCPT To:<emiliotonix@gmail.com>\r\n"};
+uint8_t TO[50];
 uint8_t static DATA[]={"DATA\r\n"};
 //uint8_t static MESSAGE[]={"Subject: REPORTE RUTA 27\n"};
 uint8_t static DOT[]={".\r\n"};
@@ -48,7 +48,21 @@ static struct espconn *INFO;
 static struct _esp_tcp user_tcp;
 static struct espconn user_tcp_conn;
 
-
+void email_setup(FlashData *Setup)
+{
+	char email[30];
+	char name[20];
+	char *domain;
+	domain = strtok(Setup->EMAIL_DATA,"%");
+	//printf("data: %s",RAW_data);
+	strcpy(name,domain);
+	
+	domain = strtok(NULL,"0");
+	domain = strtok(NULL,"0");
+	sprintf(email,"%s@%s",name,domain);
+	sprintf(TO,"RCPT To:<%s>\r\n",email);
+	printf("email: %s",TO);
+}
 
 void user_dns_found(const char *name, ip_addr_t *ipaddr, void *arg) //GET THE DNS AND LATER HAS TWO POSIIBLE CALLBACKS
 {
@@ -104,7 +118,7 @@ static void MAIL_SEND(struct espconn *pespconn)
 			user_send_data(pespconn,FROM,MAIL_FROM_LEN);
 			break;
 		case 4:
-			user_send_data(pespconn,TO,33);
+			user_send_data(pespconn,TO,sizeof(TO)-1);
 			break;
 			/*DATA PREPARE*/
 		case 5:

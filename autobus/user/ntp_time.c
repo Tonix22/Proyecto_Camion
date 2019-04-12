@@ -140,6 +140,13 @@ void Time_check (void *pvParameters)
 		 }
 	}
 }
+void set_mail_time(FlashData* Setup_time)
+{
+	char *mail_alarm = Setup_time->EMAIL_TIME;
+	hora = (mail_alarm[0]-0x30)*10 + (mail_alarm[1]-0x30);
+	min  = (mail_alarm[5]-0x30)*10 + (mail_alarm[6]-0x30);
+	printf("Time: %d:%d\r\n",hora,min);
+}
 static void Summer_winter_time(struct tm * time_temp)
 {
 	int week_day = time_temp->tm_wday;

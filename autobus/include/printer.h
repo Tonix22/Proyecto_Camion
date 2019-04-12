@@ -8,8 +8,9 @@
 #ifndef __PRINTER_H__
 #define __PRINTER_H__
 #include "gpio_config.h"
+#include "Flash_driver.h"
 
-void printer_init(void);
+void printer_init(FlashData* Configuration);
 static void Centrar(uint8_t ok);
 static void Negritas(uint8_t enable);
 void FEED(uint8_t feeds);

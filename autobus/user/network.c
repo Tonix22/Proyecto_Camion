@@ -4,14 +4,17 @@
 #include "Tcp_mail.h"
 #include "udp_client.h"
 #include "MQTTEcho.h"
-
+#include "freeRTOS_wrapper.h"
+#include "Flash_driver.h"
+#include "network.h"
 #define SOFT_AP_SSID      "central_comunication"
 #define SOFT_AP_PASSWORD  "12345678"
 #define DEVICES_CAPACITY 4
-static void conn_AP_Init(void);
+
 os_timer_t acces_point_config;
 os_timer_t MQTT_timer;
 bool network_sucess = false;
+SemaphoreHandle_t ip_connect = NULL;
 /******************************************************************************
  * FunctionName : network_init
  * Description  : Call back for different wifi situations
@@ -41,7 +44,8 @@ void network_init(System_Event_t *evt)
                     IP2STR(&evt->event_info.got_ip.mask), IP2STR(&evt->event_info.got_ip.gw));
             printf("\n");
             network_sucess = true;
-           os_timer_arm(&acces_point_config,10,0);  
+            xSemaphoreGiveFromISR(ip_connect,NULL);
+            //os_timer_arm(&acces_point_config,10,0);  
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
             udpServer();//1024
@@ -60,10 +64,17 @@ void network_init(System_Event_t *evt)
  * Parameters   : none
  * Returns      : none
 *******************************************************************************/
-static void conn_AP_Init(void)
+void conn_AP_Init(void)
 {   
-	struct softap_config *config = (struct softap_config *) zalloc(sizeof(struct softap_config)); 
 
+    /*Wifi configuration mode as station and acces point*/
+    wifi_set_opmode(STATIONAP_MODE);
+
+    /*Handler to jump when connection is ready*/
+    wifi_set_event_handler_cb(network_init);
+
+	struct softap_config *config = (struct softap_config *) zalloc(sizeof(struct softap_config)); 
+    
     /* Get soft-AP config context first*/
     wifi_softap_get_config(config); 
 
@@ -114,10 +125,22 @@ static void conn_AP_Init(void)
     {
         printf("DCHP fail\r\n");
     }
-    
-
 }
 
+void wifi_setup(FlashData* Conection_data)
+{
+    printf("SSID: %s\r\n",Conection_data->SSID_DATA);
+    printf("Pass: %s\r\n",Conection_data->PASS_DATA);
+    /*station configuration*/
+    struct station_config config;
+    bzero(&config, sizeof(struct station_config));  //set value of config from address of &config to width of size to be value '0'
+    sprintf(config.ssid, SSID); // name of the acces point
+    sprintf(config.password, PASS);
+    wifi_station_set_config(&config);
+
+    /*wifi_conection*/
+    wifi_station_connect();
+}
 /******************************************************************************
  * FunctionName : wifi_init
  * Description  : Initialize the wifi conection as station and access point.
@@ -129,6 +152,7 @@ static void conn_AP_Init(void)
 *******************************************************************************/
 void wifi_init(void)
 {
+
     /*Wifi configuration mode as station and acces point*/
     wifi_set_opmode(STATIONAP_MODE);
 
@@ -142,7 +166,7 @@ void wifi_init(void)
     wifi_set_event_handler_cb(network_init);
 
     /*Timer set to callback a configuration fucntion*/
-    os_timer_setfn(&acces_point_config,(os_timer_func_t *)conn_AP_Init, NULL);
+    //os_timer_setfn(&acces_point_config,(os_timer_func_t *)conn_AP_Init, NULL);
 
     /*when connection is ready it will jump to the network_init callback*/
     wifi_station_connect();

@@ -2,6 +2,8 @@
 #define __TCP_MAIL_H__
 #include "esp_common.h"
 #include "espconn.h"
+#include "Flash_driver.h"
+void email_setup(FlashData *Setup);
 static void user_tcp_connect_cb(void *arg);
 static void user_tcp_recon_cb(void *arg, sint8 err);
 static void user_tcp_recv_cb(void *arg, char *pusrdata, unsigned short length);
