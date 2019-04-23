@@ -68,10 +68,25 @@ make clean
 
 make BOOT=$boot APP=$app SPI_SPEED=$spi_speed SPI_MODE=$spi_mode SPI_SIZE_MAP=$spi_size_map
 
+if [ $? -eq 0 ]
+then 
+    echo "compile success"
+    BIN_NAME="user${app}.${flash}.${boot}.${spi_size_map}"
+    echo ""
+    echo "Generating $BIN_NAME.$PRODUCT_TYPE.bin..."
+    cp $BIN_PATH/upgrade/$BIN_NAME.bin $BIN_PATH/upgrade/$BIN_NAME.$PRODUCT_TYPE.bin
+    echo "Binary ready to be flashed: $BIN_NAME.$PRODUCT_TYPE.bin"
+    echo ""
+    exit 0
+else
+    echo "COMPILE FAIL: $? "
+        echo " ______              _____   _        _   _   _ "
+        echo "|  ____|     /\     |_   _| | |      | | | | | |"
+        echo "| |__       /  \      | |   | |      | | | | | |"
+        echo "|  __|     / /\ \     | |   | |      | | | | | |"
+        echo "| |       / ____ \   _| |_  | |____  |_| |_| |_|"
+        echo "|_|      /_/    \_\ |_____| |______| (_) (_) (_)"
+    exit 1
+fi
 
-BIN_NAME="user${app}.${flash}.${boot}.${spi_size_map}"
-echo ""
-echo "Generating $BIN_NAME.$PRODUCT_TYPE.bin..."
-cp $BIN_PATH/upgrade/$BIN_NAME.bin $BIN_PATH/upgrade/$BIN_NAME.$PRODUCT_TYPE.bin
-echo "Binary ready to be flashed: $BIN_NAME.$PRODUCT_TYPE.bin"
-echo ""
+
