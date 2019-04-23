@@ -14,9 +14,4 @@ sudo esptool.py --port /dev/ttyUSB0 write_flash \
 0x3FE000 ../../bin/blank.bin \
 0x3FC000 ../../bin/esp_init_data_default.bin
 
-#sudo esptool.py --port /dev/ttyUSB0 write_flash 
-#sudo esptool.py --port /dev/ttyUSB0 write_flash 0x3FE000 ../../bin/blank.bin
-#sudo esptool.py --port /dev/ttyUSB0 write_flash 0x1000 ../../bin/upgrade/user1.4096.new.4.bin
-#terminal
-#sudo xterm -e sudo python terminal.py &
-sudo python terminal.py 
+sudo python terminal.py
