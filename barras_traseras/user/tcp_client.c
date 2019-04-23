@@ -1,7 +1,7 @@
 #include "c_types.h"
 #include "esp_common.h"
 #include "tcp_client.h"
-#include "barras.h"
+#include "../interfaces/barras.h"
 #include "freeRTOS_wrapper.h"
 #include "espconn.h"
 

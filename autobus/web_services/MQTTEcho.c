@@ -22,7 +22,7 @@
 
 #include "user_config.h"
 
-#include "barras.h"
+#include "../interfaces/barras.h"
 #include "MQTTEcho.h"
 #include "../../include/lwip/lwip/sockets.h"
 #include "../../include/lwip/lwip/netdb.h"

@@ -26,13 +26,13 @@
 
 #include "freeRTOS_wrapper.h"
 //#include "user_config.h"
-#include "ntp_time.h"
-#include "printer.h"
-#include "barras.h"
-#include "network.h"
-#include "http_server.h"
-#include "Flash_driver.h"
-#include "Tcp_mail.h"
+#include "../web_services/ntp_time.h"
+#include "../interfaces/printer.h"
+#include "../interfaces/barras.h"
+#include "../network_config/network.h"
+#include "../web_services/http_server.h"
+#include "../application_drivers/Flash_driver.h"
+#include "../web_services/Tcp_mail.h"
 
 #define msec(milis) milis/portTICK_RATE_MS 
 extern bool network_sucess;

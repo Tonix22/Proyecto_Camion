@@ -22,8 +22,14 @@ GEN_IMAGES= eagle.app.v6.out
 GEN_BINS= eagle.app.v6.bin
 SPECIAL_MKTARGETS=$(APP_MKTARGETS)
 SUBDIRS=    \
-    user
-
+    user	\
+	peripheral_drivers \
+	network_config \
+	application_drivers\
+	interfaces \
+	web_services\
+	database
+	
 endif # } PDIR
 
 LDDIR = $(SDK_PATH)/ld
@@ -45,8 +51,14 @@ ifeq ($(FLAVOR),release)
 endif
 
 COMPONENTS_eagle.app.v6 = \
-    user/libuser.a
-
+    user/libuser.a	\
+	peripheral_drivers/libperipheral.a \
+	network_config/network_cfg.a \
+	application_drivers/app_driver.a\
+	interfaces/libinterfaces.a \
+	web_services/libwebservices.a\
+	database/database.a
+	
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDK_PATH)/lib        \
 	-Wl,--gc-sections   \

@@ -3,8 +3,8 @@
 #include "c_types.h"
 #include "esp_common.h"
 #include "user_config.h"
-#include "gpio_config.h"
-#include "udp_client.h"
+#include "../application_drivers/gpio_config.h"
+#include "../web_services/udp_client.h"
 #include "freeRTOS_wrapper.h"
 
 #define GPIO_READ(gpio_read) GPIO_INPUT_GET(gpio_read)

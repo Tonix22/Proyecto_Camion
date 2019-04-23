@@ -4,7 +4,7 @@
 #include "c_types.h"
 #include "user_config.h"
 #include "udp_client.h"
-#include "barras.h"
+#include "../interfaces/barras.h"
 #include "freeRTOS_wrapper.h"
 
 extern QueueHandle_t Back_Bar;

@@ -25,9 +25,9 @@
 #include "esp_common.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "gpio_config.h"
+#include "../application_drivers/gpio_config.h"
 #include "network.h"
-#include "barras.h"
+#include "../interfaces/barras.h"
 extern void barras_traseras_task(void *pvParameters);
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
