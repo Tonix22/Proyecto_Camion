@@ -194,7 +194,7 @@ void services_thread(void* pvParameters)
             /****************************************************
             ***********NTP SERVER TASK INIT*********************
             ****************************************************/
-            xTaskCreate(Time_check,"ntp server",1024,NULL,1,NULL);
+            xTaskCreate(Time_check,"ntp server",1024,NULL,3,NULL);
             /****************************************************/
         }
         else
@@ -208,13 +208,12 @@ void services_thread(void* pvParameters)
     {
         printf("NET services Fail\r\n");
     }
+
     /******************************************************************************
      * FunctionName : printer task
      * Description  : print ticket info 
-     * NTP_Request-->Semaphore 
      *******************************************************************************/
-
-    xTaskCreate(printer_task, "Printer Task", 1024, NULL, 3, NULL );
+    xTaskCreate(printer_task, "Printer Task", 1024, NULL, 4, NULL );
     vTaskDelay(500/portTICK_RATE_MS);
 
     /******************************************************************************
@@ -222,10 +221,8 @@ void services_thread(void* pvParameters)
      * Description  : Bar check logic whith semaphores and timers. 
      * NTP_Request-->Semaphore 
      *******************************************************************************/
-    xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,4,NULL);
+    xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,5,NULL);
     vTaskDelay(500/portTICK_RATE_MS);
-
-    
     vTaskDelete(NULL);
 }
 /******************************************************************************
@@ -237,6 +234,7 @@ void services_thread(void* pvParameters)
 
  void user_init(void)
 {
+   
     uint8_t system_ready;
     //disable software watchdog
     //system_soft_wdt_feed();
@@ -258,13 +256,8 @@ void services_thread(void* pvParameters)
             Ticket info
             Email setup: user to send and time to send
     */
-
-    /*
-        Acces point configuration setup
-            Access point data
-            NAME:central_comunication
-            Pass:12345678
-    */
+    
+    vTaskDelay(500/portTICK_RATE_MS);
 
     Flash_Ready = xSemaphoreCreateMutex();
     Flash_Flag = xQueueCreate(1,sizeof(uint8_t));
@@ -278,10 +271,17 @@ void services_thread(void* pvParameters)
 
     if(0xFF == system_ready)
     {
-        conn_AP_Init();
+        /*
+        Acces point configuration setup
+            Access point data
+            NAME:central_comunication
+            Pass:12345678
+        */
+        conn_AP_Init(system_ready);
     }
     else
     {
+        
         vTaskDelay(msec(100));
         /******************************************************************************
          * FunctionName : services_thread
@@ -296,35 +296,8 @@ void services_thread(void* pvParameters)
          * Description  : gets the data given by flash, and connects to acces point
          * 
          *******************************************************************************/
-        wifi_init();
+        wifi_init(Configuration);
         //wifi_setup(Configuration);
     }
     
-
-    #ifdef LOL
-    /******************************************************************************
-     * FunctionName : services_thread
-     * Description  : intialize mqtt services, bar check and printer thread, but
-     * before this, it holds the wifi semaphore, which is set when wifi is connected.
-     *  
-     *******************************************************************************/
-    xTaskCreate(services_thread,"services_thread",2048,NULL,6,NULL);
-
-
-    /******************************************************************************
-     * FunctionName : wifi_setup
-     * Description  : gets the data given by flash, and connects to acces point
-     * 
-     *******************************************************************************/
-       
-    
-    /*Wait the semaphore to be created by services_thread*/
-    do
-    {
-        vTaskDelay(msec(100));
-    }
-    while(ip_connect == NULL);
-
-    wifi_setup(Configuration);
-    #endif
 }

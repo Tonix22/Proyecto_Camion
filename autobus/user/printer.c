@@ -64,7 +64,8 @@ void printer_init(FlashData* Cfg)
 	NTP_Request = xSemaphoreCreateMutex();
 	if(NTP_Request!=NULL)
 	{
-		xSemaphoreTake(NTP_Request,( TickType_t ) 10);
+		printf("NTP REQUEST SEMA: %d\r\n",NTP_Request);
+		xSemaphoreTake(NTP_Request,( TickType_t ) 0);
 	}
 	
 	UART_SetPrintPort(UART1);
@@ -203,13 +204,29 @@ void printer_task(void *pvParameters)
 
 	while(1)
 	{
-		if(xSemaphoreTake(gpio_printer_semaphore, ( TickType_t ) 100 ) == pdTRUE)
+		vTaskDelay(100/portTICK_RATE_MS);
+		if(xSemaphoreTake(gpio_printer_semaphore, ( TickType_t ) 100/portTICK_RATE_MS ) == pdTRUE)
 		{
+			printf("gpio semaphore taken\r\n");
 			/*check if semaphore is released*/
-			xSemaphoreGive(NTP_Request);
+			if(NTP_Request!=NULL)
+			{
+				printf("NTP REQUEST SEMA 2: %d\r\n",NTP_Request);
+				if( xSemaphoreGive( NTP_Request ) != pdTRUE )
+				{
+					printf("NTP Requtest GIVE FAIL\r\n");
+				}
+			}
+			else
+			{
+				printf("NTP_Request DEAD\r\n");
+			}
 
-			if(xQueueReceive(printer_state_queue, &(boleto), ( TickType_t ) 20) == pdPASS)
+			
+			printf("NTP Requtest GIVE\r\n");
+			if(xQueueReceive(printer_state_queue, &(boleto), ( TickType_t ) 0) == pdPASS)
 			{ 
+				printf("printer queue\r\n");
 				access = boleto;
 				if(access != barra_derecha && access != barra_izquierda)
 				{

@@ -6,6 +6,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 void io_intr_handler(void);
+void after_reset_enable(void);
 static void gpio_personal_config(uint16 esp_pin);
 void GPIO_init(void);
 typedef enum {

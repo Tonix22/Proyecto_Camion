@@ -55,7 +55,7 @@ void Time_check (void *pvParameters)
 	vTaskDelay(500/portTICK_RATE_MS);
 	Summer_winter_time(time_string);
 	free(addr);
-	/* Create a queue capable of containing 1 unsigned char */
+	/* Create a queue capable of containing 1 struct*/
 	time_state_queue = xQueueCreate(TIME_COMMAND_QUEUE_SIZE, sizeof(struct tm *));
 	
 	if (NULL != time_state_queue) 
@@ -130,11 +130,14 @@ void Time_check (void *pvParameters)
 		 {
 			if(xSemaphoreTake(NTP_Request, ( TickType_t ) 100 ) == pdTRUE)
 		 	{
+				printf("Take NTP request \r\n");
 				time_set        = internal_timer;
 				time_string = gmtime(&time_set);
 				if(time_state_queue!=NULL)
 				{
-					xQueueSend(time_state_queue, ( void * ) &time_string,( portTickType ) 10);
+					printf("NTPQA\r\n");
+					xQueueSend(time_state_queue, ( void * ) &time_string,( portTickType ) 0);
+					printf("NTPQD\r\n");
 				}
 			 }
 		 }

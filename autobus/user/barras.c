@@ -68,6 +68,12 @@ void barras_delanteras_task(void *pvParameters)
 		vTaskDelay(1000/portTICK_RATE_MS);
 	}
 
+	/*
+		after reset the GPIO could detect false edges generating errors in
+		sempahores and queues
+	*/
+	after_reset_enable();  
+
 	while(1)
 	{
 		if(xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 100 ) == pdTRUE)

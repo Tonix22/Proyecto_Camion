@@ -16,9 +16,12 @@ QueueHandle_t bar_state_queue = NULL;
 
 SemaphoreHandle_t gpio_printer_semaphore = NULL;
 SemaphoreHandle_t gpio_bar_semaphore = NULL;
-os_timer_t gpio_handler;
 gpio_action_t action;
+
+os_timer_t gpio_handler;
 static bool debouncer = false;
+
+bool gpio_bar_enable = false;
 
 void io_intr_handler(void)
 {
@@ -27,43 +30,56 @@ void io_intr_handler(void)
 	/*Botones*/
 	if(debouncer == false)
 	{
-		if ((status & GPIO_Pin_0) && debouncer == false )
+		if(gpio_printer_semaphore!=NULL)
 		{
-			action    = normal;
-			debouncer = true;
-			Release(gpio_printer_semaphore);
-			os_timer_arm(&gpio_handler,500,0);
+			if ((status & GPIO_Pin_0) && debouncer == false )
+			{
+				printf("g0\r\n");
+				action    = normal;
+				debouncer = true;
+				os_timer_arm(&gpio_handler,500,0);
+			}
+			if ((status & GPIO_Pin_4) && debouncer == false)
+			{
+				printf("g4\r\n");
+				action    = mitad;
+				debouncer = true;
+				os_timer_arm(&gpio_handler,500,0);
+			}
+			if ((status & GPIO_Pin_5) && debouncer == false)
+			{
+				printf("g5\r\n");
+				action    = transvale;
+				debouncer = true;
+				os_timer_arm(&gpio_handler,500,0);
+			}
+			
+			if(debouncer == true)
+			{
+				Release(gpio_printer_semaphore);
+				CLEAR_PRINTER_QUEUE;
+			}
 		}
-		if ((status & GPIO_Pin_4) && debouncer == false)
-		{
-			action    = mitad;
-			debouncer = true;
-			Release(gpio_printer_semaphore);
-			os_timer_arm(&gpio_handler,500,0);
-		}
-		if ((status & GPIO_Pin_5) && debouncer == false)
-		{
-			action    = transvale;
-			debouncer = true;
-			Release(gpio_printer_semaphore);
-			os_timer_arm(&gpio_handler,500,0);
-		}
-		
-		CLEAR_PRINTER_QUEUE;
 	}
 
 	//Barras
-	if (status & GPIO_Pin_10) 
+	if(gpio_bar_enable == true)
 	{
-		action = barra_derecha;
-		Release(gpio_bar_semaphore);
-		CLEAR_BAR_QUEUE;
-	}
-	if (status & GPIO_Pin_12) 
-	{
-		action = barra_izquierda;
-		Release(gpio_bar_semaphore);
-		CLEAR_BAR_QUEUE;
+		if (status & GPIO_Pin_10) 
+		{
+			action = barra_derecha;
+			printf("bar10\r\n");
+			Release(gpio_bar_semaphore);
+			CLEAR_BAR_QUEUE;
+		}
+
+		if (status & GPIO_Pin_12) 
+		{
+			action = barra_izquierda;
+			printf("bar12\r\n");
+			Release(gpio_bar_semaphore);
+			CLEAR_BAR_QUEUE;
+		}
 	}
 
 	CLEAR_ISR_FLAG;
@@ -71,6 +87,10 @@ void io_intr_handler(void)
 void gpio_release_and_send(void)
 {
 	debouncer = false;
+}
+void after_reset_enable(void)
+{
+	gpio_bar_enable = true;
 }
 void gpio_personal_config(uint16 esp_pin)
 {
@@ -90,6 +110,8 @@ void GPIO_init(void)
 	gpio_personal_config(GPIO_Pin_5);
 	gpio_personal_config(GPIO_Pin_4);
 	gpio_personal_config(GPIO_Pin_0);
+
+	
 	
 	/* Create a queue capable of containing 1 unsigned char */
 	printer_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
@@ -101,6 +123,7 @@ void GPIO_init(void)
 	/*Each half second the botton could read a signal*/
  	os_timer_setfn(&gpio_handler,(os_timer_func_t *)gpio_release_and_send, NULL);
 
+	
 	if(printer_state_queue!=NULL && bar_state_queue!=NULL)
 	{
 		printf("Queue created\r\n");
@@ -117,7 +140,6 @@ void GPIO_init(void)
 	}
 	/*block semaphore wating them for being realised*/
 	xSemaphoreTake( gpio_printer_semaphore, ( TickType_t ) 0 );
-	vTaskDelay(100/portTICK_RATE_MS);
 	xSemaphoreTake( gpio_bar_semaphore, ( TickType_t ) 0 );
 	
 	gpio_intr_handler_register(io_intr_handler, NULL);

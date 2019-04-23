@@ -6,7 +6,7 @@
 #include "MQTTEcho.h"
 #include "freeRTOS_wrapper.h"
 #include "Flash_driver.h"
-#include "network.h"
+
 #define SOFT_AP_SSID      "central_comunication"
 #define SOFT_AP_PASSWORD  "12345678"
 #define DEVICES_CAPACITY 4
@@ -45,7 +45,8 @@ void network_init(System_Event_t *evt)
             printf("\n");
             network_sucess = true;
             xSemaphoreGive(ip_connect);
-            os_timer_arm(&acces_point_config,10,0);  
+            os_timer_arm(&acces_point_config,10,0);
+            
             break;
         case EVENT_SOFTAPMODE_STACONNECTED:
             udpServer();//1024
@@ -64,7 +65,7 @@ void network_init(System_Event_t *evt)
  * Parameters   : none
  * Returns      : none
 *******************************************************************************/
-void conn_AP_Init(void)
+void conn_AP_Init(uint8_t flash_state)
 {   
 
     /*Wifi configuration mode as station and acces point*/
@@ -79,8 +80,16 @@ void conn_AP_Init(void)
     wifi_softap_get_config(config); 
 
     /*Name and pass of the acces point, which will be visible for device that want conection*/
-    sprintf(config->ssid, SOFT_AP_SSID);
-    sprintf(config->password, SOFT_AP_PASSWORD);
+    if(flash_state==0xFF)
+    {
+        sprintf(config->ssid, "SYSTEM SET UP");
+        sprintf(config->password, SOFT_AP_PASSWORD);
+    }
+    else
+    {
+        sprintf(config->ssid, SOFT_AP_SSID);
+        sprintf(config->password, SOFT_AP_PASSWORD);
+    }
 
     /*acces point settings*/
     config->authmode = AUTH_WPA_WPA2_PSK;
@@ -150,17 +159,30 @@ void wifi_setup(FlashData* Conection_data)
  * Parameters   : none
  * Returns      : none
 *******************************************************************************/
-void wifi_init(void)
+void wifi_init(FlashData* Conection_data)
 {
-
+    char* ssid_parse = Conection_data->SSID_DATA ;
+	char match;
+	char * token_str;
+	
+	token_str=strchr(ssid_parse,'+');
+	  
+	  
+	while (token_str!=NULL)
+	{
+	    match = token_str-ssid_parse;
+	    ssid_parse[match]=' ';
+	    token_str=strchr(token_str+1,'+');
+	}
+    
     /*Wifi configuration mode as station and acces point*/
     wifi_set_opmode(STATIONAP_MODE);
 
     /*station configuration*/
     struct station_config config;
     bzero(&config, sizeof(struct station_config));  //set value of config from address of &config to width of size to be value '0'
-    sprintf(config.ssid, SSID); // name of the acces point
-    sprintf(config.password, PASS);
+    sprintf(config.ssid, ssid_parse); // name of the acces point
+    sprintf(config.password, Conection_data->PASS_DATA);
     wifi_station_set_config(&config);
     /*Handler to jump when connection is ready*/
     wifi_set_event_handler_cb(network_init);
