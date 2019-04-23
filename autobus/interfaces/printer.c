@@ -14,6 +14,7 @@
 #include "../interfaces/printer.h"
 #include "../web_services/ntp_time.h"
 #include "../database/data_base.h"
+#include "../custom_logic/common_logic.h"
 
 #define DEBUG
 
@@ -54,13 +55,6 @@ extern SemaphoreHandle_t gpio_printer_semaphore;
 
 void printer_init(FlashData* Cfg)
 {
-	uint32_t temp;
-	uint32_t decimal;
-	uint32_t ten;
-	uint8_t price_size;
-	uint8_t i;
-	uint8_t price_index = 0;
-
 	NTP_Request = xSemaphoreCreateMutex();
 	if(NTP_Request!=NULL)
 	{
@@ -78,32 +72,7 @@ void printer_init(FlashData* Cfg)
 	UNIDAD = Cfg->UNIDAD_DATA;
 	PRECIO = Cfg->COSTO_DATA;
 
-	//Ajustar el de mitad de precio
-	price_size = strlen(PRECIO);
-	do
-	{
-		for(i=0;i<price_size-1;i++)
-		{
-			ten*=10;
-		}
-		decimal+=(PRECIO[price_index]-0x30)*ten;
-		ten=1;
-		price_index++;
-		price_size--;
-	}
-	while(price_size!=0);
-
-    if(decimal%2 == 0)
-	{
-    
-   	 	decimal=decimal/2;
-   	 	sprintf(MITAD_PRECIO,"%d",decimal);
-    }
-	else
-    {
-   	 	decimal=decimal/2;
-   	  	sprintf(MITAD_PRECIO,"%d.5",decimal);
-    }
+	half_of_string_number(PRECIO,MITAD_PRECIO);
 
 	#ifdef DEBUG
 		printf("TITULO: %s\r\n",TITULO);

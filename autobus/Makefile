@@ -28,7 +28,8 @@ SUBDIRS=    \
 	application_drivers\
 	interfaces \
 	web_services\
-	database
+	database \
+	custom_logic
 	
 endif # } PDIR
 
@@ -57,7 +58,8 @@ COMPONENTS_eagle.app.v6 = \
 	application_drivers/app_driver.a\
 	interfaces/libinterfaces.a \
 	web_services/libwebservices.a\
-	database/database.a
+	database/database.a \
+	custom_logic/custom_logic.a
 	
 LINKFLAGS_eagle.app.v6 = \
 	-L$(SDK_PATH)/lib        \

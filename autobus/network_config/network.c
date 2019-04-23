@@ -5,6 +5,7 @@
 #include "../web_services/MQTTEcho.h"
 #include "freeRTOS_wrapper.h"
 #include "../application_drivers/Flash_driver.h"
+#include "../custom_logic/common_logic.h"
 
 #define SOFT_AP_SSID      "central_comunication"
 #define SOFT_AP_PASSWORD  "12345678"
@@ -161,18 +162,7 @@ void wifi_setup(FlashData* Conection_data)
 void wifi_init(FlashData* Conection_data)
 {
     char* ssid_parse = Conection_data->SSID_DATA ;
-	char match;
-	char * token_str;
-	
-	token_str=strchr(ssid_parse,'+');
-	  
-	  
-	while (token_str!=NULL)
-	{
-	    match = token_str-ssid_parse;
-	    ssid_parse[match]=' ';
-	    token_str=strchr(token_str+1,'+');
-	}
+    SSID_space_parse(ssid_parse);
     
     /*Wifi configuration mode as station and acces point*/
     wifi_set_opmode(STATIONAP_MODE);
