@@ -22,12 +22,12 @@ void SSID_space_parse(char* word)
 void half_of_string_number(char *ACTUAL,char* HALF)
 {
     uint32_t temp;
-	uint32_t decimal;
-	uint32_t ten;
 	uint8_t price_size;
 	uint8_t i;
+	uint32_t decimal    = 0;
+	uint32_t ten        = 1;
 	uint8_t price_index = 0;
-
+	
     price_size = strlen(ACTUAL);
 	do
 	{
