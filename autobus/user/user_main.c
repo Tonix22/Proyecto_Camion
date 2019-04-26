@@ -33,6 +33,7 @@
 #include "../web_services/http_server.h"
 #include "../application_drivers/Flash_driver.h"
 #include "../web_services/Tcp_mail.h"
+#include "../custom_logic/common_logic.h"
 
 #define msec(milis) milis/portTICK_RATE_MS 
 extern bool network_sucess;
@@ -257,6 +258,8 @@ void services_thread(void* pvParameters)
             Email setup: user to send and time to send
     */
     
+    #ifdef FIRST_TIME_SETUP
+
     vTaskDelay(500/portTICK_RATE_MS);
 
     Flash_Ready = xSemaphoreCreateMutex();
@@ -281,7 +284,20 @@ void services_thread(void* pvParameters)
     }
     else
     {
-        
+    
+    #else
+        char MITAD_PRECIO[8];
+        Configuration = (FlashData*) malloc(sizeof(FlashData));
+        strcpy(Configuration->SSID_DATA,"IZZI-99CD");
+        strcpy(Configuration->PASS_DATA,"704FB81799CD");
+        strcpy(Configuration->RUTA_DATA,"27");
+        strcpy(Configuration->UNIDAD_DATA,"15");
+        strcpy(Configuration->COSTO_DATA,"7");
+        half_of_string_number(Configuration->COSTO_DATA,MITAD_PRECIO);
+        printf("mitad de precio: %s",MITAD_PRECIO);
+        strcpy(Configuration->EMAIL_DATA,"emiliotonix%40gmail.com");
+        strcpy(Configuration->EMAIL_TIME,"17%3A03");
+    #endif
         vTaskDelay(msec(100));
         /******************************************************************************
          * FunctionName : services_thread
@@ -298,6 +314,7 @@ void services_thread(void* pvParameters)
          *******************************************************************************/
         wifi_init(Configuration);
         //wifi_setup(Configuration);
+    #ifdef FIRST_TIME_SETUP
     }
-    
+    #endif
 }
