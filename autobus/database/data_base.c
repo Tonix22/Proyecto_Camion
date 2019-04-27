@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <string.h>
 #include "esp_common.h"
 #include "freeRTOS_wrapper.h"
 #include "espconn.h"
@@ -7,6 +5,7 @@
 #include "../interfaces/barras.h"
 #include "data_base.h"
 #include "../web_services/Tcp_mail.h"
+#include "../custom_logic/common_logic.h"
 
 uint8_t  M_SUBIDAS[]  = {"SUBIDAS:000\r\n\0"};//14
 uint8_t  M_BAJADAS[]  = {"BAJADAS:000\r\n\0"};//14
@@ -42,13 +41,14 @@ void data_base_task (void *pvParameters)
         vTaskDelay(100/portTICK_RATE_MS);
         if(time_to_send == true)
         {
-            string_parse(M_SUBIDAS,barras_data.subidas);
-            string_parse(M_BAJADAS,barras_data.bajadas);
-            parse_time(M_OBSTRUC,barras_data.obs);
+            mail_data_parse(M_SUBIDAS,barras_data.subidas);
+            mail_data_parse(M_BAJADAS,barras_data.bajadas);
+            mail_parse_time(M_OBSTRUC,barras_data.obs);
 
-            string_parse(M_NORMAL,ticket_info.normal);
-            string_parse(M_MITAD,ticket_info.mitad);
-            string_parse(M_TRANSVALE,ticket_info.transvale);
+            mail_data_parse(M_NORMAL,ticket_info.normal);
+            mail_data_parse(M_MITAD,ticket_info.mitad);
+            mail_data_parse(M_TRANSVALE,ticket_info.transvale);
+
             strcat(ALL,"Subject: REPORTE RUTA 27\r\n");//26
             strcat(ALL,"REPORTE\r\n\r\n");//11
             strcat(ALL,M_SUBIDAS);
@@ -64,33 +64,4 @@ void data_base_task (void *pvParameters)
             vTaskDelete(xData_Base);
         }
     }
-    
-}
-static void string_parse(uint8_t * string,uint16_t value)
-{
-    uint8_t i=0;
-    do
-    {
-        i++;
-    }while(string[i] != ':');
-    i++;
-    string[i] = (value/100)+0x30;
-    string[i+1] = ((value%100)/10)+0x30;
-    string[i+2] = (value%10)+0x30;
-}
-static void parse_time(uint8_t *data,uint16_t time)
-{
-	uint16_t temp;
-	//Horas
-	temp=time/3600;
-    data[14]=0x30+(temp/10);//14,15
-    data[15]=0x30+(temp%10);
-    //Minutos
-    temp=(time%3600)/60;
-    data[17]=0x30+(temp/10);//17,18
-    data[18]=0x30+(temp%10);
-    //segundos
-    temp=time%60;//20,21
-    data[20]=0x30+(temp/10);//17,18
-    data[21]=0x30+(temp%10);
 }
