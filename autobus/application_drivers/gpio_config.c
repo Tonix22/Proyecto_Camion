@@ -97,6 +97,21 @@ void gpio_input_config(uint16 esp_pin)
     io_in_conf->GPIO_Pullup = GPIO_PullUp_EN;
     gpio_config(io_in_conf);
 }
+static void gpio_output_config(uint16 esp_pin)
+{
+    GPIO_ConfigTypeDef io_out_conf;
+    io_out_conf.GPIO_IntrType = GPIO_PIN_INTR_DISABLE;
+    io_out_conf.GPIO_Mode = GPIO_Mode_Output;
+    io_out_conf.GPIO_Pin = esp_pin;
+    io_out_conf.GPIO_Pullup = GPIO_PullUp_DIS;
+    gpio_config(&io_out_conf);
+}
+void RGB_LED(char r,char g, char b)
+{
+    GPIO_OUTPUT_SET(RED, r);
+    GPIO_OUTPUT_SET(GREEN, g);
+    GPIO_OUTPUT_SET(BLUE, b);
+}
 void GPIO_init(void)
 {
 	/*sensores de paso*/
@@ -106,7 +121,11 @@ void GPIO_init(void)
 	gpio_input_config(GPIO_Pin_5);
 	gpio_input_config(GPIO_Pin_4);
 	gpio_input_config(GPIO_Pin_0);
-
+	/*RGB*/
+    gpio_output_config(GPIO_Pin_13);//R
+    gpio_output_config(GPIO_Pin_14);//G
+    gpio_output_config(GPIO_Pin_15);//B
+	
 	/* Create a queue capable of containing 1 unsigned char */
 	printer_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
 	bar_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
