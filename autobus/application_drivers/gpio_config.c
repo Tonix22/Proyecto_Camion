@@ -1,5 +1,6 @@
 
 #include "../application_drivers/gpio_config.h"
+#include "../peripheral_drivers/gpio.h"
 #include "freeRTOS_wrapper.h"
 /**********************************SAMPLE CODE*****************************/
 #define ETS_GPIO_INTR_ENABLE()  _xt_isr_unmask(1 << ETS_GPIO_INUM)  //ENABLE INTERRUPTS
@@ -25,7 +26,7 @@ bool gpio_bar_enable = false;
 
 void io_intr_handler(void)
 {
-    uint32 status = GPIO_REG_READ(GPIO_STATUS_ADDRESS);          //READ STATUS OF INTERRUPT
+    uint32 status = GPIO_REG_READ(GPIO_STATUS_ADDRESS); //READ STATUS OF INTERRUPT
 	portBASE_TYPE xHigherPriorityTaskWoken;
 	/*Botones*/
 	if(debouncer == false)
@@ -34,21 +35,18 @@ void io_intr_handler(void)
 		{
 			if ((status & GPIO_Pin_0) && debouncer == false )
 			{
-				printf("g0\r\n");
 				action    = normal;
 				debouncer = true;
 				os_timer_arm(&gpio_handler,500,0);
 			}
 			if ((status & GPIO_Pin_4) && debouncer == false)
 			{
-				printf("g4\r\n");
 				action    = mitad;
 				debouncer = true;
 				os_timer_arm(&gpio_handler,500,0);
 			}
 			if ((status & GPIO_Pin_5) && debouncer == false)
 			{
-				printf("g5\r\n");
 				action    = transvale;
 				debouncer = true;
 				os_timer_arm(&gpio_handler,500,0);
@@ -68,7 +66,6 @@ void io_intr_handler(void)
 		if (status & GPIO_Pin_10) 
 		{
 			action = barra_derecha;
-			printf("bar10\r\n");
 			Release(gpio_bar_semaphore);
 			CLEAR_BAR_QUEUE;
 		}
@@ -76,7 +73,6 @@ void io_intr_handler(void)
 		if (status & GPIO_Pin_12) 
 		{
 			action = barra_izquierda;
-			printf("bar12\r\n");
 			Release(gpio_bar_semaphore);
 			CLEAR_BAR_QUEUE;
 		}
@@ -92,7 +88,7 @@ void after_reset_enable(void)
 {
 	gpio_bar_enable = true;
 }
-void gpio_personal_config(uint16 esp_pin)
+void gpio_input_config(uint16 esp_pin)
 {
 	GPIO_ConfigTypeDef *io_in_conf =(GPIO_ConfigTypeDef*)zalloc(sizeof(GPIO_ConfigTypeDef));
     io_in_conf->GPIO_IntrType = GPIO_PIN_INTR_NEGEDGE;
@@ -104,15 +100,13 @@ void gpio_personal_config(uint16 esp_pin)
 void GPIO_init(void)
 {
 	/*sensores de paso*/
-    gpio_personal_config(GPIO_Pin_12);
-	gpio_personal_config(GPIO_Pin_10);
+    gpio_input_config(GPIO_Pin_12);
+	gpio_input_config(GPIO_Pin_10);
 	/*Botones*/
-	gpio_personal_config(GPIO_Pin_5);
-	gpio_personal_config(GPIO_Pin_4);
-	gpio_personal_config(GPIO_Pin_0);
+	gpio_input_config(GPIO_Pin_5);
+	gpio_input_config(GPIO_Pin_4);
+	gpio_input_config(GPIO_Pin_0);
 
-	
-	
 	/* Create a queue capable of containing 1 unsigned char */
 	printer_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
 	bar_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));

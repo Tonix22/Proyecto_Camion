@@ -293,10 +293,14 @@ void services_thread(void* pvParameters)
         strcpy(Configuration->RUTA_DATA,"27");
         strcpy(Configuration->UNIDAD_DATA,"15");
         strcpy(Configuration->COSTO_DATA,"7");
-        half_of_string_number(Configuration->COSTO_DATA,MITAD_PRECIO);
-        printf("mitad de precio: %s",MITAD_PRECIO);
         strcpy(Configuration->EMAIL_DATA,"emiliotonix%40gmail.com");
-        strcpy(Configuration->EMAIL_TIME,"17%3A03");
+        strcpy(Configuration->EMAIL_TIME,"23%3A12");
+
+        printf("configuration setup begin..\r\n");
+        printer_init(Configuration);
+        email_setup(Configuration);
+        set_mail_time(Configuration);
+        printf("configuration setup end..\r\n");
     #endif
         vTaskDelay(msec(100));
         /******************************************************************************

@@ -10,20 +10,21 @@
 #include "user_config.h"
 #include "uart.h"
 
+#define TIME_COMMAND_QUEUE_SIZE 1U
+#define SNTP_DISCONNECT 0
+#define TEN_SEC 40
 extern TaskHandle_t xData_Base;
 extern xQueueHandle xQueueUart;
-#define TIME_COMMAND_QUEUE_SIZE 1U
-uint8_t mail_time[BUFFER_SIZE];
 ticket_time ntp_time;
 QueueHandle_t time_state_queue = NULL;
 extern SemaphoreHandle_t NTP_Request;
 bool time_to_send = false;
 struct tm * time_string;
 static void Summer_winter_time(struct tm * time_temp);
-uint8_t hora;
-uint8_t min;
+uint8_t Mail_Hour;
+uint8_t Mail_Min;
 
-uint32_t temporal;
+uint32_t sntp_time;
 uint32_t internal_timer;
 time_t current_time;
 time_t time_set;
@@ -43,17 +44,17 @@ void Time_check (void *pvParameters)
 	/*wait valid data*/
 	do
 	{
-		temporal = sntp_get_current_timestamp();
+		sntp_time = sntp_get_current_timestamp();
 		vTaskDelay(1000/portTICK_RATE_MS);
 	}
-	while(temporal == 0);
+	while(sntp_time == 0);
 	/*change UTC summer winter*/
 
-	time_set = internal_timer;
+	time_set = sntp_time;
 	time_string = gmtime(&time_set);
 	sntp_stop();
-	vTaskDelay(500/portTICK_RATE_MS);
 	Summer_winter_time(time_string);
+
 	free(addr);
 	/* Create a queue capable of containing 1 struct*/
 	time_state_queue = xQueueCreate(TIME_COMMAND_QUEUE_SIZE, sizeof(struct tm *));
@@ -69,39 +70,40 @@ void Time_check (void *pvParameters)
 	}
 	do
 	{
-		temporal = sntp_get_current_timestamp();
+		sntp_time = sntp_get_current_timestamp();
 		vTaskDelay(1000/portTICK_RATE_MS);
 	}
-	while(temporal == 0);
-	internal_timer = temporal;
+	while(sntp_time == SNTP_DISCONNECT);
 
+	internal_timer = sntp_time;
 	
-	vTaskDelay(100/portTICK_RATE_MS);
 	while(1)
 	{
 		 vTaskDelay(250/portTICK_RATE_MS);
 		 review++;
-		 
+
 		 if(review == 4)// 1 sec
 		 {
 			Command_check += review; 
 			review = 0;
-			temporal = sntp_get_current_timestamp();
-			if(temporal == 0)
+			sntp_time = sntp_get_current_timestamp();
+
+			if(sntp_time == SNTP_DISCONNECT)
 		 	{
 				internal_timer++;
 		 	}
 		 	else
 		 	{
-			 	internal_timer = temporal;
+			 	internal_timer = sntp_time;
 		 	}
 			time_set = internal_timer;
-		 	time_string = gmtime(&time_set);
-			
-			if(Command_check == 40) // each 10 seconds
+
+			if(Command_check == TEN_SEC) // each 10 seconds
 			{	
+				time_string = gmtime(&time_set);
+				printf("TIME %d:%d:%d\r\n",time_string->tm_hour,time_string->tm_min,time_string->tm_sec);
 				Command_check = 0;
-				if(time_string->tm_hour==hora && time_string->tm_min==min && time_to_send==false )
+				if(time_string->tm_hour==Mail_Hour && time_string->tm_min==Mail_Min && time_to_send==false )
 				{
 					xTaskCreate(data_base_task,"data base",1024,NULL,2,xData_Base);
 					//KILll task when end
@@ -112,43 +114,31 @@ void Time_check (void *pvParameters)
 						by tcp client
 						*/
 					time_to_send = true;
-					
 				}
-				if(xQueueReceive(xQueueUart, &(mail_time), ( TickType_t ) 100) )
-				{
-					printf("rcv: %s",mail_time);
-					if(mail_time[0]=='m'&& mail_time[1]=='a'&&  mail_time[2]=='i' &&  mail_time[3]=='l' &&  mail_time[4]==':' )
-					{
-						hora = (mail_time[5]-0x30)*10 + (mail_time[6]-0x30);
-						min  = (mail_time[8]-0x30)*10 + (mail_time[9]-0x30);
-						printf("Time: %d:%d\r\n",hora,min);
-					}
-				}
+
 			}
 		 }
 		 if(NTP_Request!=NULL)
 		 {
-			if(xSemaphoreTake(NTP_Request, ( TickType_t ) 100 ) == pdTRUE)
-		 	{
-				printf("Take NTP request \r\n");
-				time_set        = internal_timer;
-				time_string = gmtime(&time_set);
-				if(time_state_queue!=NULL)
+				if(xSemaphoreTake(NTP_Request, ( TickType_t ) 100 ) == pdTRUE)
 				{
-					printf("NTPQA\r\n");
-					xQueueSend(time_state_queue, ( void * ) &time_string,( portTickType ) 0);
-					printf("NTPQD\r\n");
+					time_set        = internal_timer;
+					time_string = gmtime(&time_set);
+					if(time_state_queue!=NULL)
+					{
+						xQueueSend(time_state_queue, ( void * ) &time_string,( portTickType ) 0);
+					}
 				}
-			 }
+				xSemaphoreGive( NTP_Request );
 		 }
 	}
 }
 void set_mail_time(FlashData* Setup_time)
 {
 	char *mail_alarm = Setup_time->EMAIL_TIME;
-	hora = (mail_alarm[0]-0x30)*10 + (mail_alarm[1]-0x30);
-	min  = (mail_alarm[5]-0x30)*10 + (mail_alarm[6]-0x30);
-	printf("Time: %d:%d\r\n",hora,min);
+	Mail_Hour = (mail_alarm[0]-0x30)*10 + (mail_alarm[1]-0x30);
+	Mail_Min  = (mail_alarm[5]-0x30)*10 + (mail_alarm[6]-0x30);
+	printf("Mail Alarm: %d:%d\r\n",Mail_Hour,Mail_Min);
 }
 static void Summer_winter_time(struct tm * time_temp)
 {

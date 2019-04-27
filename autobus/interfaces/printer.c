@@ -54,14 +54,7 @@ extern QueueHandle_t printer_state_queue;
 extern SemaphoreHandle_t gpio_printer_semaphore;
 
 void printer_init(FlashData* Cfg)
-{
-	NTP_Request = xSemaphoreCreateMutex();
-	if(NTP_Request!=NULL)
-	{
-		printf("NTP REQUEST SEMA: %d\r\n",NTP_Request);
-		xSemaphoreTake(NTP_Request,( TickType_t ) 0);
-	}
-	
+{	
 	UART_SetPrintPort(UART1);
 	vTaskDelay(10/portTICK_RATE_MS);
 	printf("%s",Printer_Start);
@@ -164,6 +157,13 @@ void printer_task(void *pvParameters)
 	gpio_action_t boleto;
 	uint8_t access;
 
+	NTP_Request = xSemaphoreCreateMutex();
+	if(NTP_Request!=NULL)
+	{
+		printf("NTP REQUEST SEMA: %d\r\n",NTP_Request);
+		xSemaphoreTake(NTP_Request,( TickType_t ) 0);
+	}
+
 	printer_time.hora  = (char*)malloc(10);
 	printer_time.fecha = (char*)malloc(10);
 	sprintf(printer_time.hora,"12:00:00");
@@ -176,26 +176,13 @@ void printer_task(void *pvParameters)
 		vTaskDelay(100/portTICK_RATE_MS);
 		if(xSemaphoreTake(gpio_printer_semaphore, ( TickType_t ) 100/portTICK_RATE_MS ) == pdTRUE)
 		{
-			printf("gpio semaphore taken\r\n");
 			/*check if semaphore is released*/
-			if(NTP_Request!=NULL)
+			if( xSemaphoreGive( NTP_Request ) != pdTRUE )
 			{
-				printf("NTP REQUEST SEMA 2: %d\r\n",NTP_Request);
-				if( xSemaphoreGive( NTP_Request ) != pdTRUE )
-				{
 					printf("NTP Requtest GIVE FAIL\r\n");
-				}
-			}
-			else
-			{
-				printf("NTP_Request DEAD\r\n");
-			}
-
-			
-			printf("NTP Requtest GIVE\r\n");
+			}			
 			if(xQueueReceive(printer_state_queue, &(boleto), ( TickType_t ) 0) == pdPASS)
 			{ 
-				printf("printer queue\r\n");
 				access = boleto;
 				if(access != barra_derecha && access != barra_izquierda)
 				{
@@ -206,12 +193,11 @@ void printer_task(void *pvParameters)
 					printer_print_TITLE();
 					Centrar(CENTRAR_OFF);
 					Negritas(BOLD_OFF);
-					vTaskDelay(100/portTICK_RATE_MS);
 					printer_print_leftover(access);
 					//UART_SetPrintPort(UART0);
-					vTaskDelay(100/portTICK_RATE_MS);
 				}
 			}
 		}
+		xSemaphoreTake(NTP_Request,( TickType_t ) 100);
 	}
 }
