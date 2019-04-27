@@ -73,7 +73,6 @@
     #define DBG_NTP 1
     #define DBG_MAIL 1
     #define DBG_UDP 1
-
 /****************
     GPIOS
  ****************/
@@ -93,8 +92,6 @@
 #define GPIO_RED_LED GPIO_Pin_13
 #define GPIO_GREEN_LED GPIO_Pin_14
 #define GPIO_BLUE_LED GPIO_Pin_15
-
-
 
 /*DELAY MACRO*/
 #define milli_sec(milis) milis/portTICK_RATE_MS
@@ -122,5 +119,13 @@
 /*Printer Commands*/
 
 /*NTP*/
+
+/*DEGUBG PRINTS*/
+#if DGB_MAIN == ENABLE
+    #define DEBUG_MAIN printf
+#else
+    #define DEBUG_MAIN
+#endif
+
 #endif
 
