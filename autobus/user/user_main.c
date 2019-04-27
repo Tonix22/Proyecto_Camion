@@ -109,7 +109,7 @@ void Flash_thread(void* pvParameters)
     /*Flash pointers setup*/
     Flash_init();
     Configuration = Flash_read();
-    printf("Flash data: Configuration->Saved: %d\r\n",Configuration->Saved);
+    DEBUG_MAIN("Flash data: Configuration->Saved: %d\r\n",Configuration->Saved);
     /*
         Check if data had been written before,
         if the answer is True Flash data 
@@ -128,10 +128,10 @@ void Flash_thread(void* pvParameters)
         * HTTP page
         * Flash save system
         *******************************************************************************/
-        printf("provising data\r\n");
+        DEBUG_MAIN("provising data\r\n");
         LED_YELLOW;
 
-        /*save date gotten from htlm request page*/
+        /*save date gotten from html request page*/
         provisioning();
 
         /*read flash again*/
@@ -143,11 +143,11 @@ void Flash_thread(void* pvParameters)
      * Description  : Initialize UART1, and create printer task
      * NTP_Request-->Semaphore 
      *******************************************************************************/
-    printf("configuration setup begin..\r\n");
+    DEBUG_MAIN("configuration setup begin..\r\n");
 	printer_init(Configuration);
     email_setup(Configuration);
     set_mail_time(Configuration);
-    printf("configuration setup end..\r\n");
+    DEBUG_MAIN("configuration setup end..\r\n");
 
     if(provising == true)
     {
@@ -161,24 +161,24 @@ void services_thread(void* pvParameters)
 {
     bool NET_START = TRUE;
     uint8_t try;
-    printf("service thread\r\n");
+    DEBUG_MAIN("service thread\r\n");
     ip_connect = xSemaphoreCreateMutex();
     if(ip_connect!=NULL)
     {
         xSemaphoreTake( ip_connect, ( TickType_t ) 0 );
     }
-    printf("semaphore waiting ip connect..\r\n");
+    DEBUG_MAIN("semaphore waiting ip connect..\r\n");
     //Holding while wifi connect
 
     while(xSemaphoreTake( ip_connect, ( TickType_t ) milli_sec(1000) ) == pdFALSE);
     if(network_sucess == FALSE)
     {
-        printf("wifi and info data incorrect\r\n");
+        DEBUG_MAIN("wifi and info data incorrect\r\n");
         LED_RED;
     }
     else
     {
-         printf("wifi and info data correct\r\n");
+         DEBUG_MAIN("wifi and info data correct\r\n");
          LED_GREEN;
     }
 
@@ -192,7 +192,7 @@ void services_thread(void* pvParameters)
 
             mqtt_init();
             NET_START = FALSE;
-            printf("MQTT INIT WELL\r\n");
+            DEBUG_MAIN("MQTT INIT WELL\r\n");
 
             /****************************************************
             ***********NTP SERVER TASK INIT*********************
@@ -207,9 +207,9 @@ void services_thread(void* pvParameters)
         }
 
     }
-    if(try == 5)
+    if(try == MAX_CONNECT_TRIES)
     {
-        printf("NET services Fail\r\n");
+        DEBUG_MAIN("NET services Fail\r\n");
     }
 
     /******************************************************************************
@@ -244,7 +244,7 @@ void services_thread(void* pvParameters)
 
     //Change BaudRate to 9600
     uart_user_init();
-    printf("User init\n");
+    DEBUG_MAIN("User init\n");
     /******************************************************************************
      * FunctionName : GPIO_init
      * Description  : GPIOS are divided in Bars and printers
@@ -269,9 +269,9 @@ void services_thread(void* pvParameters)
     xSemaphoreTake(Flash_Ready,( TickType_t ) 0);
 
     xTaskCreate(Flash_thread,"Flash_thread",2048,NULL,4,NULL);
-    printf("Acces Point init\n");
-    while(xSemaphoreTake(Flash_Ready,( TickType_t ) msec(100)) == pdFALSE );
-    vTaskDelay(msec(10));
+    DEBUG_MAIN("Acces Point init\n");
+    while(xSemaphoreTake(Flash_Ready,( TickType_t ) milli_sec(100)) == pdFALSE );
+    vTaskDelay(milli_sec(10));
     xQueueReceive(Flash_Flag, &(system_ready), ( TickType_t ) 20);
 
     if(0xFF == system_ready)
@@ -286,8 +286,8 @@ void services_thread(void* pvParameters)
     }
     else
     {
-    
-    #else
+        /*Preloaded data avoid first time setup*/
+        #else
         char MITAD_PRECIO[8];
         Configuration = (FlashData*) malloc(sizeof(FlashData));
         strcpy(Configuration->SSID_DATA,  WIFI_SSID);
@@ -298,12 +298,12 @@ void services_thread(void* pvParameters)
         strcpy(Configuration->EMAIL_DATA, MAIL_RECIEVER);
         strcpy(Configuration->EMAIL_TIME, MAIL_TIME);
 
-        printf("configuration setup begin..\r\n");
+        DEBUG_MAIN("configuration setup begin..\r\n");
         printer_init(Configuration);
         email_setup(Configuration);
         set_mail_time(Configuration);
-        printf("configuration setup end..\r\n");
-    #endif
+        DEBUG_MAIN("configuration setup end..\r\n");
+        #endif
         vTaskDelay(milli_sec(100));
         /******************************************************************************
          * FunctionName : services_thread

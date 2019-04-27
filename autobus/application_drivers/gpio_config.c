@@ -1,7 +1,8 @@
 
-#include "../application_drivers/gpio_config.h"
+#include "gpio_config.h"
 #include "../peripheral_drivers/gpio.h"
 #include "freeRTOS_wrapper.h"
+#include "../include/user_config.h"
 /**********************************SAMPLE CODE*****************************/
 #define ETS_GPIO_INTR_ENABLE()  _xt_isr_unmask(1 << ETS_GPIO_INUM)  //ENABLE INTERRUPTS
 #define PRINTER_COMMAND_QUEUE_SIZE 1U
@@ -33,19 +34,19 @@ void io_intr_handler(void)
 	{
 		if(gpio_printer_semaphore!=NULL)
 		{
-			if ((status & GPIO_Pin_0) && debouncer == false )
+			if ((status & GPIO_COMPLETE_BUTTON) && debouncer == false )
 			{
 				action    = normal;
 				debouncer = true;
 				os_timer_arm(&gpio_handler,500,0);
 			}
-			if ((status & GPIO_Pin_4) && debouncer == false)
+			if ((status & GPIO_HALF_BUTTON) && debouncer == false)
 			{
 				action    = mitad;
 				debouncer = true;
 				os_timer_arm(&gpio_handler,500,0);
 			}
-			if ((status & GPIO_Pin_5) && debouncer == false)
+			if ((status & GPIO_SPECIAL_BUTTON) && debouncer == false)
 			{
 				action    = transvale;
 				debouncer = true;
@@ -63,14 +64,14 @@ void io_intr_handler(void)
 	//Barras
 	if(gpio_bar_enable == true)
 	{
-		if (status & GPIO_Pin_10) 
+		if (status & GPIO_RIGHT_SENSOR) 
 		{
 			action = barra_derecha;
 			Release(gpio_bar_semaphore);
 			CLEAR_BAR_QUEUE;
 		}
-
-		if (status & GPIO_Pin_12) 
+		
+		if (status & GPIO_LEFT_SENSOR) 
 		{
 			action = barra_izquierda;
 			Release(gpio_bar_semaphore);
@@ -104,7 +105,7 @@ static void gpio_output_config(uint16 esp_pin)
     io_out_conf.GPIO_Mode = GPIO_Mode_Output;
     io_out_conf.GPIO_Pin = esp_pin;
     io_out_conf.GPIO_Pullup = GPIO_PullUp_DIS;
-    gpio_config(&io_out_conf);
+	gpio_config(&io_out_conf);
 }
 void RGB_LED(char r,char g, char b)
 {
@@ -114,21 +115,23 @@ void RGB_LED(char r,char g, char b)
 }
 void GPIO_init(void)
 {
-	/*sensores de paso*/
-    gpio_input_config(GPIO_Pin_12);
-	gpio_input_config(GPIO_Pin_10);
-	/*Botones*/
-	gpio_input_config(GPIO_Pin_5);
-	gpio_input_config(GPIO_Pin_4);
-	gpio_input_config(GPIO_Pin_0);
-	/*RGB*/
-    gpio_output_config(GPIO_Pin_13);//R
-    gpio_output_config(GPIO_Pin_14);//G
-    gpio_output_config(GPIO_Pin_15);//B
+	/*Passangers sensors*/
+	gpio_input_config(GPIO_RIGHT_SENSOR);
+    gpio_input_config(GPIO_LEFT_SENSOR);
+
+	/*buttons*/
+	gpio_input_config(GPIO_SPECIAL_BUTTON);
+	gpio_input_config(GPIO_HALF_BUTTON);
+	gpio_input_config(GPIO_COMPLETE_BUTTON);
+
+	/*RGB indicator*/
+    gpio_output_config(GPIO_RED_LED);//R
+    gpio_output_config(GPIO_GREEN_LED);//G
+    gpio_output_config(GPIO_BLUE_LED);//B
 	
 	/* Create a queue capable of containing 1 unsigned char */
 	printer_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
-	bar_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
+    bar_state_queue = xQueueCreate(PRINTER_COMMAND_QUEUE_SIZE, sizeof(uint8_t));
 
 	gpio_printer_semaphore = xSemaphoreCreateMutex();
 	gpio_bar_semaphore     = xSemaphoreCreateMutex();
