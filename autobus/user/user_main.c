@@ -25,7 +25,7 @@
 #include "esp_common.h"
 
 #include "freeRTOS_wrapper.h"
-//#include "user_config.h"
+#include "../include/user_config.h"
 #include "../application_drivers/gpio_config.h"
 #include "../web_services/ntp_time.h"
 #include "../interfaces/printer.h"
@@ -36,7 +36,6 @@
 #include "../web_services/Tcp_mail.h"
 #include "../custom_logic/common_logic.h"
 
-#define msec(milis) milis/portTICK_RATE_MS
 #define LED_RED RGB_LED(1,0,0);
 #define LED_YELLOW RGB_LED(1,1,0);
 #define LED_GREEN RGB_LED(0,1,0);
@@ -170,7 +169,8 @@ void services_thread(void* pvParameters)
     }
     printf("semaphore waiting ip connect..\r\n");
     //Holding while wifi connect
-    while(xSemaphoreTake( ip_connect, ( TickType_t ) msec(1000) ) == pdFALSE);
+
+    while(xSemaphoreTake( ip_connect, ( TickType_t ) milli_sec(1000) ) == pdFALSE);
     if(network_sucess == FALSE)
     {
         printf("wifi and info data incorrect\r\n");
@@ -182,9 +182,7 @@ void services_thread(void* pvParameters)
          LED_GREEN;
     }
 
-    //vTaskDelay(10000/portTICK_RATE_MS);
-
-    while(try<5 && NET_START == TRUE)
+    while(try<MAX_CONNECT_TRIES && NET_START == TRUE)
     {
         if(network_sucess == TRUE)
         {
@@ -204,7 +202,7 @@ void services_thread(void* pvParameters)
         }
         else
         {
-            vTaskDelay(msec(2000));
+            vTaskDelay(milli_sec(2000));
              try++;
         }
 
@@ -292,13 +290,13 @@ void services_thread(void* pvParameters)
     #else
         char MITAD_PRECIO[8];
         Configuration = (FlashData*) malloc(sizeof(FlashData));
-        strcpy(Configuration->SSID_DATA,"IZZI-99CD");
-        strcpy(Configuration->PASS_DATA,"704FB81799CD");
-        strcpy(Configuration->RUTA_DATA,"27");
-        strcpy(Configuration->UNIDAD_DATA,"15");
-        strcpy(Configuration->COSTO_DATA,"7");
-        strcpy(Configuration->EMAIL_DATA,"emiliotonix%40gmail.com");
-        strcpy(Configuration->EMAIL_TIME,"23%3A12");
+        strcpy(Configuration->SSID_DATA,  WIFI_SSID);
+        strcpy(Configuration->PASS_DATA,  WIFI_PASS);
+        strcpy(Configuration->RUTA_DATA,  ROUTE);
+        strcpy(Configuration->UNIDAD_DATA,BUS_ID);
+        strcpy(Configuration->COSTO_DATA, NORMAL_TICKET);
+        strcpy(Configuration->EMAIL_DATA, MAIL_RECIEVER);
+        strcpy(Configuration->EMAIL_TIME, MAIL_TIME);
 
         printf("configuration setup begin..\r\n");
         printer_init(Configuration);
@@ -306,7 +304,7 @@ void services_thread(void* pvParameters)
         set_mail_time(Configuration);
         printf("configuration setup end..\r\n");
     #endif
-        vTaskDelay(msec(100));
+        vTaskDelay(milli_sec(100));
         /******************************************************************************
          * FunctionName : services_thread
          * Description  : intialize mqtt services, bar check and printer thread, but
@@ -314,14 +312,14 @@ void services_thread(void* pvParameters)
          *  
          *******************************************************************************/
         xTaskCreate(services_thread,"services_thread",2048,NULL,4,NULL);
-        vTaskDelay(msec(10));
+        vTaskDelay(milli_sec(10));
         /******************************************************************************
-         * FunctionName : wifi_setup
+         * FunctionName : wifi_init
          * Description  : gets the data given by flash, and connects to acces point
          * 
          *******************************************************************************/
         wifi_init(Configuration);
-        //wifi_setup(Configuration);
+
     #ifdef FIRST_TIME_SETUP
     }
     #endif

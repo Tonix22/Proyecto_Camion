@@ -25,23 +25,99 @@
 #ifndef __USER_CONFIG_H__
 #define __USER_CONFIG_H__
 
-/*WIFI*/
-#define SSID "IZZI-99CD"
-#define PASS "704FB81799CD"
+/****************
+    GENERAL 
+ ****************/
 
+/*DECLARATIONS*/
+#define ENABLE 1
+#define DISABLE 0
+
+/****************
+ ******MAIN****** 
+ ****************/
+#define SETUP_EN 0
+/*FIRST TIME SET UP ENABLE*/
+
+#if SETUP_EN == ENABLE
+    #define FIRST_TIME_SETUP
+#endif
+/*MAX CONNECT TRYS*/
+#define MAX_CONNECT_TRIES 5
+
+/****************
+    DEBUG LEVELS 
+ ****************/
+
+/*MAIN*/
+    #define DGB_MAIN 1
+
+/*APPS drivers*/
+    #define DBG_FLASH_DRIVER 1
+    #define DBG_GPIO_CONFIG 1
+    #define DBG_UART_CONFIG 1
+
+/*data base*/
+    #define DBG_DATA_BASE 1
+
+/*interfaces*/
+    #define DBG_BARRAS 1
+    #define DBG_PRINTER 1
+
+/*network*/
+    #define DBG_NETWORK 1
+
+/*web services*/
+    #define DBG_HTTP 1
+    #define DBG_MQTT 1
+    #define DBG_NTP 1
+    #define DBG_MAIL 1
+    #define DBG_UDP 1
+
+/****************
+    GPIOS
+ ****************/
+
+#define GPIO_SPECIAL_BUTTON GPIO_Pin_5 
+#define GPIO_HALF_BUTTON GPIO_Pin_4
+#define GPIO_COMPLETE_BUTTON GPIO_Pin_0
+
+/*sensors*/
+#define RIGHT_SENSOR 10
+#define GPIO_RIGHT_SENSOR GPIO_Pin_10
+
+#define LEFT_SENSOR 12
+#define GPIO_LEFT_SENSOR GPIO_Pin_12
+
+/*RGB LED*/
+#define GPIO_RED_LED GPIO_Pin_13
+#define GPIO_GREEN_LED GPIO_Pin_14
+#define GPIO_BLUE_LED GPIO_Pin_15
+
+
+
+/*DELAY MACRO*/
+#define milli_sec(milis) milis/portTICK_RATE_MS
+
+/****************
+    DATA
+ ****************/
+
+/*WIFI*/
+#define WIFI_SSID "IZZI-99CD"
+#define WIFI_PASS "704FB81799CD"
 /*MQTT */
 
 /*Mail*/
-
-/*GPIOS*/
+#define MAIL_RECIEVER "emiliotonix%40gmail.com"
+#define MAIL_TIME "23%3A12"
 
 /*Tiket Data*/
 
-#define ROUTE "RUTA 27\r\n\0"
-#define BUS_ID "Unidad: 2069\r\n\0"
-#define NORMAL_TICKET "Costo: $7\r\n"
-#define HALD_PRICE_TICKET "Costo: $3.5\r\n"
-#define TRANSVALE "Costo: TRANSVALE\r\n"
+#define ROUTE "27"
+#define BUS_ID "2069"
+#define NORMAL_TICKET "7"
+#define SPECIAL_TYCKET "Costo: TRANSVALE\r\n"
 
 /*Printer Commands*/
 
