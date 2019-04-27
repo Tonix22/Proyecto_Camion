@@ -136,20 +136,6 @@ void conn_AP_Init(uint8_t flash_state)
     }
 }
 
-void wifi_setup(FlashData* Conection_data)
-{
-    printf("SSID: %s\r\n",Conection_data->SSID_DATA);
-    printf("Pass: %s\r\n",Conection_data->PASS_DATA);
-    /*station configuration*/
-    struct station_config config;
-    bzero(&config, sizeof(struct station_config));  //set value of config from address of &config to width of size to be value '0'
-    sprintf(config.ssid, SSID); // name of the acces point
-    sprintf(config.password, PASS);
-    wifi_station_set_config(&config);
-
-    /*wifi_conection*/
-    wifi_station_connect();
-}
 /******************************************************************************
  * FunctionName : wifi_init
  * Description  : Initialize the wifi conection as station and access point.
