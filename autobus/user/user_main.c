@@ -26,6 +26,7 @@
 
 #include "freeRTOS_wrapper.h"
 //#include "user_config.h"
+#include "../application_drivers/gpio_config.h"
 #include "../web_services/ntp_time.h"
 #include "../interfaces/printer.h"
 #include "../interfaces/barras.h"
@@ -35,7 +36,10 @@
 #include "../web_services/Tcp_mail.h"
 #include "../custom_logic/common_logic.h"
 
-#define msec(milis) milis/portTICK_RATE_MS 
+#define msec(milis) milis/portTICK_RATE_MS
+#define LED_RED RGB_LED(1,0,0);
+#define LED_YELLOW RGB_LED(1,1,0);
+#define LED_GREEN RGB_LED(0,1,0);
 extern bool network_sucess;
 extern SemaphoreHandle_t Provising;
 extern SemaphoreHandle_t ip_connect;
@@ -126,7 +130,7 @@ void Flash_thread(void* pvParameters)
         * Flash save system
         *******************************************************************************/
         printf("provising data\r\n");
-        // TURN ON LED YELLOW
+        LED_YELLOW;
 
         /*save date gotten from htlm request page*/
         provisioning();
@@ -170,12 +174,12 @@ void services_thread(void* pvParameters)
     if(network_sucess == FALSE)
     {
         printf("wifi and info data incorrect\r\n");
-        //TURN ON LED RED
+        LED_RED;
     }
     else
     {
          printf("wifi and info data correct\r\n");
-        //TURN ON LED GREEN
+         LED_GREEN;
     }
 
     //vTaskDelay(10000/portTICK_RATE_MS);
