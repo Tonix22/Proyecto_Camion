@@ -54,3 +54,31 @@ void half_of_string_number(char *ACTUAL,char* HALF)
    	  	sprintf(HALF,"%d.5",decimal);
     }
 }
+void mail_data_parse(uint8_t * string,uint16_t value)
+{
+    uint8_t i=0;
+    do
+    {
+        i++;
+    }while(string[i] != ':');
+    i++;
+    string[i] = (value/100)+0x30;
+    string[i+1] = ((value%100)/10)+0x30;
+    string[i+2] = (value%10)+0x30;
+}
+void mail_parse_time(uint8_t *data,uint16_t time)
+{
+	uint16_t temp;
+	//Horas
+	temp=time/3600;
+    data[14]=0x30+(temp/10);//14,15
+    data[15]=0x30+(temp%10);
+    //Minutos
+    temp=(time%3600)/60;
+    data[17]=0x30+(temp/10);//17,18
+    data[18]=0x30+(temp%10);
+    //segundos
+    temp=time%60;//20,21
+    data[20]=0x30+(temp/10);//17,18
+    data[21]=0x30+(temp%10);
+}
