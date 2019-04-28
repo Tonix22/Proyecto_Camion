@@ -8,7 +8,7 @@
 #include "../web_services/MQTTEcho.h"
 #include "../include/user_config.h"
 
-#define GPIO_READ(gpio_read) GPIO_INPUT_GET(gpio_read)
+#define GPIO_READ GPIO_INPUT_GET
 
 extern QueueHandle_t bar_state_queue;
 extern SemaphoreHandle_t gpio_bar_semaphore;
@@ -127,7 +127,7 @@ static void BAR_CHECK (gpio_action_t action)
 
 void false_move_check (void)
 {
-	if(GPIO_READ(RIGHT_SENSOR) ^ GPIO_READ(LEFT_SENSOR))
+	if(GPIO_READ(10) ^ GPIO_READ(12))
 	{
 		barras_data.obs+=8;
 		DEBUG_BARRAS("false sec: %d \n",barras_data.obs);
@@ -136,7 +136,7 @@ void false_move_check (void)
 }
 void obs_check_function (void)
 {
-	if((GPIO_READ(RIGHT_SENSOR) == 0) && (GPIO_READ(LEFT_SENSOR)==0))
+	if((GPIO_READ(10) == 0) && (GPIO_READ(12)==0))
 	{
 		obstruccion++;
 		if(obstruccion == 8)
