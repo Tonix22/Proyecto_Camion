@@ -36,7 +36,7 @@
 /****************
  ******MAIN****** 
  ****************/
-#define SETUP_EN 0
+#define SETUP_EN 1
 /*FIRST TIME SET UP ENABLE*/
 
 #if SETUP_EN == ENABLE

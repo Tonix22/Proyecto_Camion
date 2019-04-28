@@ -104,7 +104,9 @@ void Time_check (void *pvParameters)
 				time_string = gmtime(&time_set);
 				DEBUG_NTP("TIME %d:%d:%d\r\n",time_string->tm_hour,time_string->tm_min,time_string->tm_sec);
 				Command_check = 0;
-				if(time_string->tm_hour==Mail_Hour && time_string->tm_min==Mail_Min && time_to_send==false )
+				
+				//TIME SCHEDULER
+				if(time_string->tm_hour == Mail_Hour && time_string->tm_min == Mail_Min && time_to_send == false )
 				{
 					xTaskCreate(data_base_task,"data base",1024,NULL,2,xData_Base);
 					//KILll task when end
