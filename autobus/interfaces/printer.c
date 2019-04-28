@@ -15,6 +15,7 @@
 #include "../web_services/ntp_time.h"
 #include "../database/data_base.h"
 #include "../custom_logic/common_logic.h"
+#include "../include/user_config.h"
 
 #define DEBUG
 
@@ -22,10 +23,7 @@
 #define BOLD_OFF 0
 #define CENTRAR_ON 1
 #define CENTRAR_OFF 0
-#define NORMAL 1
-#define MITAD 2
-#define TRANSVALE 3
-#define STATE_MACHINE_TICKS_MS       (5000 / spb_portTICK_PERIOD_MS)
+#define PRINTER_OUTPUT printf
 
 uint8_t Printer_Start[27]={0x1B,0x38,0x00,0x00,0x1B,0x40,0x1B,0x44,0x04,
 						   0x08,0x0C,0x10,0x14,0x18,0x1C,0x00,0x1B,0x37,
@@ -57,7 +55,7 @@ void printer_init(FlashData* Cfg)
 {	
 	UART_SetPrintPort(UART1);
 	vTaskDelay(10/portTICK_RATE_MS);
-	printf("%s",Printer_Start);
+	PRINTER_OUTPUT("%s",Printer_Start);
 	vTaskDelay(10/portTICK_RATE_MS);
 	UART_SetPrintPort(UART0);
 
@@ -68,16 +66,16 @@ void printer_init(FlashData* Cfg)
 	half_of_string_number(PRECIO,MITAD_PRECIO);
 
 	#ifdef DEBUG
-		printf("TITULO: %s\r\n",TITULO);
-		printf("UNIDAD: %s\r\n",UNIDAD);
-		printf("PRECIO: %s\r\n",PRECIO);
-		printf("MITAD: %s\r\n",MITAD_PRECIO);
+		DEBUG_PRINTER("TITULO: %s\r\n",TITULO);
+		DEBUG_PRINTER("UNIDAD: %s\r\n",UNIDAD);
+		DEBUG_PRINTER("PRECIO: %s\r\n",PRECIO);
+		DEBUG_PRINTER("MITAD: %s\r\n",MITAD_PRECIO);
 	#endif
 }
 static void Centrar(uint8_t ok)
 {
-	printf("%c",0x1B);
-	printf("%c",0x61);
+	PRINTER_OUTPUT("%c",0x1B);
+	PRINTER_OUTPUT("%c",0x61);
 	if(ok==1)
 	{
 		uart_tx_one_char(UART0,0x01);
@@ -90,8 +88,8 @@ static void Centrar(uint8_t ok)
 }
 static void Negritas(uint8_t enable)
 {
-	printf("%c",0x1B);
-	printf("%c",0x21);
+	PRINTER_OUTPUT("%c",0x1B);
+	PRINTER_OUTPUT("%c",0x21);
     if(enable == 1)
     {
     	uart_tx_one_char(UART0,0x08);
@@ -105,11 +103,11 @@ static void Negritas(uint8_t enable)
 void FEED(uint8_t feeds)
 {
     Feed[2]=feeds;
-    printf("%s",Feed);
+    PRINTER_OUTPUT("%s",Feed);
 }
 void printer_print_TITLE(void)
 {
-	printf("RUTA: %s\r\n",TITULO);/*9 bytes*/
+	PRINTER_OUTPUT("RUTA: %s\r\n",TITULO);/*9 bytes*/
 }
 void printer_print_leftover(gpio_action_t ticket_recieved )
 {
@@ -123,34 +121,33 @@ void printer_print_leftover(gpio_action_t ticket_recieved )
 			sprintf(printer_time.hora,"%d:%d:%d\0",ntp_time_rcv->tm_hour,ntp_time_rcv->tm_min,ntp_time_rcv->tm_sec);
 			sprintf(printer_time.fecha,"%d/%d/%d\0",ntp_time_rcv->tm_mday,(ntp_time_rcv->tm_mon)+1,(ntp_time_rcv->tm_year)%100);
 		}
-
 	}
 		
-	 printf("UNIDAD: %s\r\n",UNIDAD);/*14 bytes*/
+	 PRINTER_OUTPUT("UNIDAD: %s\r\n",UNIDAD);/*14 bytes*/
 
 	 if(ticket_recieved == normal)
 	 {
 		 ticket_info.normal++;
-		 printf("Costo: $%s\r\n",PRECIO);/*11 bytes*/
+		 PRINTER_OUTPUT("Costo: $%s\r\n",PRECIO);/*11 bytes*/
 	 }
 	 if(ticket_recieved == mitad)
 	 {
 		 ticket_info.mitad++;
-		 printf("Costo: $%s\r\n",MITAD_PRECIO);/*11 bytes*/
+		 PRINTER_OUTPUT("Costo: $%s\r\n",MITAD_PRECIO);/*11 bytes*/
 	 }
 	 if(ticket_recieved == transvale)
 	 {
 		 ticket_info.transvale++;
-		 printf("Costo: TRANSVALE\r\n");/*11 bytes*/
+		 PRINTER_OUTPUT("Costo: TRANSVALE\r\n");/*11 bytes*/
 	 }
 	 
-	 printf("Hora: %s\r\n",printer_time.hora);/*14 bytes*/
+	 PRINTER_OUTPUT("Hora: %s\r\n",printer_time.hora);/*14 bytes*/
 	 
-	 printf("Fecha: %s\r\n",printer_time.fecha);/*17 bytes*/
+	 PRINTER_OUTPUT("Fecha: %s\r\n",printer_time.fecha);/*17 bytes*/
 
 	 ticket_info.folio++;
-	 printf("Folio: %d",ticket_info.folio);/*11 bytes*/
-	 printf("\n\n");
+	 PRINTER_OUTPUT("Folio: %d",ticket_info.folio);/*11 bytes*/
+	 PRINTER_OUTPUT("\n\n");
 }
 void printer_task(void *pvParameters)
 {
@@ -160,7 +157,7 @@ void printer_task(void *pvParameters)
 	NTP_Request = xSemaphoreCreateMutex();
 	if(NTP_Request!=NULL)
 	{
-		printf("NTP REQUEST SEMA: %d\r\n",NTP_Request);
+		DEBUG_PRINTER("NTP REQUEST SEMA: %d\r\n",NTP_Request);
 		xSemaphoreTake(NTP_Request,( TickType_t ) 0);
 	}
 
@@ -179,7 +176,7 @@ void printer_task(void *pvParameters)
 			/*check if semaphore is released*/
 			if( xSemaphoreGive( NTP_Request ) != pdTRUE )
 			{
-					printf("NTP Requtest GIVE FAIL\r\n");
+				DEBUG_PRINTER("NTP Requtest GIVE FAIL\r\n");
 			}			
 			if(xQueueReceive(printer_state_queue, &(boleto), ( TickType_t ) 0) == pdPASS)
 			{ 

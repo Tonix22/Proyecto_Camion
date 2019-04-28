@@ -1,5 +1,5 @@
 #include "../application_drivers/Flash_driver.h"
-
+#include "../include/user_config.h"
 FlashData static_read;
 FlashData static_save;
 
@@ -19,17 +19,17 @@ void Flash_write(void)
     Data_save->Saved = TRUE;
     spi_flash_erase_sector(0x8c);
     vTaskDelay(100);
-    printf("errase ok\r\n");
+    DEBUG_FLASH_DRIVER("errase ok\r\n");
     spi_flash_write(0x8c000, (uint32 *) Data_save, sizeof(*Data_save));
-    printf("write ok\r\n");
+    DEBUG_FLASH_DRIVER("write ok\r\n");
     vTaskDelay(100);
 }
 FlashData* Flash_read(void)
 {
     spi_flash_read(0x8c000, (uint32 *)Data_read, sizeof(*Data_read));
     return Data_read;
-    //printf("read ok\r\n");
-    //printf("read: %s\r\n",Data_read->SSID_DATA);
+    //DEBUG_FLASH_DRIVER("read ok\r\n");
+    //DEBUG_FLASH_DRIVER("read: %s\r\n",Data_read->SSID_DATA);
 }
 
 void set_FLASH_SSID(char* NAME_SSID)

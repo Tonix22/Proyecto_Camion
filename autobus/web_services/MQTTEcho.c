@@ -15,6 +15,7 @@
  *******************************************************************************/
 
 #include <stddef.h>
+#include "../include/user_config.h"
 
 #include "freeRTOS_wrapper.h"
 
@@ -55,7 +56,7 @@ Network network;
 
 void messageArrived(MessageData* data)
 {
-    printf("Message arrived: %s\n", data->message->payload);
+    DEBUG_MQTT("Message arrived: %s\n", data->message->payload);
 }
 void MQTT_set(void)
 {
@@ -67,7 +68,7 @@ void MQTT_set(void)
         connectData.MQTTVersion = 3;
         connectData.clientID.cstring = "MyFirstMQTT";// HOW I WILL BE CALLED
         rc = MQTTConnect(&client, &connectData);
-        printf("MQTTConnect is %i\r\n", rc);
+        DEBUG_MQTT("MQTTConnect is %i\r\n", rc);
         if(rc == 0)
         {
             MQTT_READY = TRUE;
@@ -77,7 +78,7 @@ void MQTT_set(void)
 void mqtt_client_thread(void* pvParameters)
 {
     rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
-    printf("NetworkConnect is %i\r\n", rc);
+    DEBUG_MQTT("NetworkConnect is %i\r\n", rc);
     MQTT_set();
     if(rc == 0)
     {
@@ -104,28 +105,28 @@ void mqtt_client_thread(void* pvParameters)
 
                 while(rc!=0)
                 {
-                    printf("SUB NAK\r\n");
+                    DEBUG_MQTT("SUB NAK\r\n");
                     MQTT_READY = FALSE;
                     close(network.my_socket);
                     rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
                     MQTT_set();
                     rc = MQTTPublish(&client, "EmilioTonix/feeds/subidas", message);
                 }
-                printf("SUB AKK\r\n");
+                DEBUG_MQTT("SUB AKK\r\n");
 
                 number_to_string(pasajeros,payload);
                 rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", message);
 
                 while(rc!=0)
                 {
-                    printf("SUB NAK\r\n");
+                    DEBUG_MQTT("SUB NAK\r\n");
                     MQTT_READY = FALSE;
                     close(network.my_socket);
                     rc = NetworkConnect(&network, MQTT_BROKER, MQTT_PORT);
                     MQTT_set();
                     rc = MQTTPublish(&client, "EmilioTonix/feeds/Pasajeros", message);
                 }
-                printf("SUB AKK\r\n");
+                DEBUG_MQTT("SUB AKK\r\n");
                 
                 free(payload);
                 free(message);
@@ -165,12 +166,12 @@ int mqtt_init(void)
     if ((NULL != MQTT_Queue) && (NULL != MQTT_semaphore) ) 
 	{
         xSemaphoreTake( MQTT_semaphore, ( TickType_t ) 0 );
-		printf("Mqtt sema and queue\r\n");
+		DEBUG_MQTT("Mqtt sema and queue\r\n");
 	} 
 	else 
 	{
 		// Return error 
-		printf("Mqtt sema and queue error\r\n");
+		DEBUG_MQTT("Mqtt sema and queue error\r\n");
 	}
     
     

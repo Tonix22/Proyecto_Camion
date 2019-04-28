@@ -217,7 +217,7 @@ void services_thread(void* pvParameters)
      * Description  : print ticket info 
      *******************************************************************************/
     xTaskCreate(printer_task, "Printer Task", 1024, NULL, 4, NULL );
-    vTaskDelay(500/portTICK_RATE_MS);
+    vTaskDelay(milli_sec(500));
 
     /******************************************************************************
      * FunctionName : barras_delanteras_task
@@ -225,7 +225,7 @@ void services_thread(void* pvParameters)
      * NTP_Request-->Semaphore 
      *******************************************************************************/
     xTaskCreate(barras_delanteras_task,"Barras delanteras",1024,NULL,5,NULL);
-    vTaskDelay(500/portTICK_RATE_MS);
+    vTaskDelay(milli_sec(500));
     vTaskDelete(NULL);
 }
 /******************************************************************************

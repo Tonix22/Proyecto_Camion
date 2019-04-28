@@ -6,6 +6,8 @@
 #include "data_base.h"
 #include "../web_services/Tcp_mail.h"
 #include "../custom_logic/common_logic.h"
+#include "../include/user_config.h"
+
 
 uint8_t  M_SUBIDAS[]  = {"SUBIDAS:000\r\n\0"};//14
 uint8_t  M_BAJADAS[]  = {"BAJADAS:000\r\n\0"};//14
@@ -58,7 +60,7 @@ void data_base_task (void *pvParameters)
             strcat(ALL,M_MITAD);
             strcat(ALL,M_TRANSVALE);
             strcat(ALL,LINK);
-            printf("%s",ALL);
+            DEBUG_DATA_BASE("%s",ALL);
             // falta para el folio
             os_timer_arm(&mail_send,50,0);
             vTaskDelete(xData_Base);

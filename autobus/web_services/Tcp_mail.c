@@ -3,6 +3,7 @@
 #include "espconn.h"
 #include "Tcp_mail.h"
 #include "../database/data_base.h"
+#include "../include/user_config.h"
 /**
 DEFINES
  */
@@ -54,14 +55,14 @@ void email_setup(FlashData *Setup)
 	char name[20];
 	char *domain;
 	domain = strtok(Setup->EMAIL_DATA,"%");
-	//printf("data: %s",RAW_data);
+	//DEBUG_MAIL("data: %s",RAW_data);
 	strcpy(name,domain);
 	
 	domain = strtok(NULL,"0");
 	domain = strtok(NULL,"0");
 	sprintf(email,"%s@%s",name,domain);
 	sprintf(TO,"RCPT To:<%s>\r\n",email);
-	printf("email: %s",TO);
+	DEBUG_MAIL("email: %s",TO);
 }
 
 void user_dns_found(const char *name, ip_addr_t *ipaddr, void *arg) //GET THE DNS AND LATER HAS TWO POSIIBLE CALLBACKS
@@ -70,12 +71,12 @@ void user_dns_found(const char *name, ip_addr_t *ipaddr, void *arg) //GET THE DN
 
 	if (ipaddr == NULL)
 	{
-		printf("user_dns_found NULL \r\n");
+		DEBUG_MAIL("user_dns_found NULL \r\n");
 		return;
 	}
 
 	//dns got ip
-	printf("user_dns_found %d.%d.%d.%d \r\n",
+	DEBUG_MAIL("user_dns_found %d.%d.%d.%d \r\n",
 			*((uint8 *)&ipaddr->addr), *((uint8 *)&ipaddr->addr + 1),
 			*((uint8 *)&ipaddr->addr + 2), *((uint8 *)&ipaddr->addr + 3));
 
@@ -100,7 +101,7 @@ static void MAIL_SEND(struct espconn *pespconn)
 {
 	if(data_counter<9 && DATA_END==false)
 	{
-		printf("CASE:%d\r\n",data_counter);
+		DEBUG_MAIL("CASE:%d\r\n",data_counter);
 		switch(data_counter)
 		{
 		/*INIT HADSHAKE*/
@@ -148,7 +149,7 @@ static void user_tcp_connect_cb(void *arg)
 {
 	struct espconn *pesp = arg;
 	INFO = arg;
-	printf("Connected to server...\r\n");
+	DEBUG_MAIL("Connected to server...\r\n");
 	//HANDLERS IN CASE OF SITUATION
 	espconn_regist_recvcb(pesp, user_tcp_recv_cb);
 	espconn_regist_sentcb(pesp, user_tcp_sent_cb);
@@ -169,13 +170,13 @@ static void user_tcp_recon_cb(void *arg, sint8 err)
 {
 	//error occured , tcp connection broke. user can try to reconnect here.
 
-	printf("Reconnect callback called, error code: %d !!! \r\n",err);
+	DEBUG_MAIL("Reconnect callback called, error code: %d !!! \r\n",err);
 }
 static void user_tcp_recv_cb(void *arg, char *pusrdata, unsigned short length)
 {
 	//received some data from tcp connection
 
-	printf("Received data string: %s \r\n", pusrdata);
+	DEBUG_MAIL("Received data string: %s \r\n", pusrdata);
 	if(First_flag==false)
 	{
 		vTaskDelay(1000/portTICK_RATE_MS);
@@ -191,7 +192,7 @@ static void user_tcp_recv_cb(void *arg, char *pusrdata, unsigned short length)
 static void user_tcp_sent_cb(void *arg)
 {
 	//data sent successfully
-	printf("Sent callback: data sent successfully.\r\n");
+	DEBUG_MAIL("Sent callback: data sent successfully.\r\n");
 	if(data_counter>6)
 	{
 		vTaskDelay(800/portTICK_RATE_MS);
@@ -201,7 +202,7 @@ static void user_tcp_sent_cb(void *arg)
 static void user_tcp_discon_cb(void *arg)
 {
 	//tcp disconnect successfully
-	printf("Disconnected from server.\r\n");
+	DEBUG_MAIL("Disconnected from server.\r\n");
 }
 void sending_mail(void)
 {

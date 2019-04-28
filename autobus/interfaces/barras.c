@@ -6,11 +6,8 @@
 #include "../interfaces/barras.h"
 #include "../database/data_base.h"
 #include "../web_services/MQTTEcho.h"
+#include "../include/user_config.h"
 
-#define ON 	1
-#define OFF 0
-#define FALSE_MOVE_CB 0
-#define OBST_CB 1
 #define GPIO_READ(gpio_read) GPIO_INPUT_GET(gpio_read)
 
 extern QueueHandle_t bar_state_queue;
@@ -54,14 +51,14 @@ void barras_delanteras_task(void *pvParameters)
 	Clear_back_bar_server = xSemaphoreCreateMutex();
 	if(Back_Bar == NULL || Clear_back_bar_server == NULL)
 	{
-		printf("sync back bar error\r\n");
+		DEBUG_BARRAS("sync back bar error\r\n");
 	}
 	else
 	{
 		xSemaphoreTake( Clear_back_bar_server, ( TickType_t ) 0 );
 	}
 
-	printf("barras_system_init\r\n");
+	DEBUG_BARRAS("barras_system_init\r\n");
 	
 	while(gpio_bar_semaphore == NULL)
 	{
@@ -100,7 +97,7 @@ static void BAR_CHECK (gpio_action_t action)
 {
 	if(action == barra_izquierda)//S1
 	{
-		printf("S1\r\n");
+		DEBUG_BARRAS("S1\r\n");
 		if(bajar_flag == false && subir_flag == false)//nadie habia sido activado
 		{
 			//False_Timer();
@@ -116,7 +113,7 @@ static void BAR_CHECK (gpio_action_t action)
 
 	if(action == barra_derecha)//S2
 	{
-		printf("S2\r\n");
+		DEBUG_BARRAS("S2\r\n");
 		if(bajar_flag == false && subir_flag == false)//nadie habia sido activado
 		{
 			bajar_flag = true;
@@ -130,23 +127,23 @@ static void BAR_CHECK (gpio_action_t action)
 
 void false_move_check (void)
 {
-	if(GPIO_READ(10) ^ GPIO_READ(12))
+	if(GPIO_READ(RIGHT_SENSOR) ^ GPIO_READ(LEFT_SENSOR))
 	{
 		barras_data.obs+=8;
-		printf("false sec: %d \n",barras_data.obs);
+		DEBUG_BARRAS("false sec: %d \n",barras_data.obs);
 		False_Timer();
 	}
 }
 void obs_check_function (void)
 {
-	if((GPIO_READ(10) == 0) && (GPIO_READ(12)==0))
+	if((GPIO_READ(RIGHT_SENSOR) == 0) && (GPIO_READ(LEFT_SENSOR)==0))
 	{
 		obstruccion++;
 		if(obstruccion == 8)
 		{
 			barras_data.obs+=2;
 			obstruccion = 0;
-			printf("obs sec: %d \n",barras_data.obs);
+			DEBUG_BARRAS("obs sec: %d \n",barras_data.obs);
 		}
 		Obst_Timer();
 	}
@@ -156,12 +153,12 @@ void obs_check_function (void)
 		if(bajar_flag == true)
 		{
 			barras_data.bajadas++;
-			printf("bajada: %d \n",barras_data.bajadas);
+			DEBUG_BARRAS("bajada: %d \n",barras_data.bajadas);
 		}
 		if(subir_flag == true)
 		{
 			barras_data.subidas++;
-			printf("subida: %d \n",barras_data.subidas);
+			DEBUG_BARRAS("subida: %d \n",barras_data.subidas);
 		}
 		obstruccion   = 0;
 		Clear_bar_flags();

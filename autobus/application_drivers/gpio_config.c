@@ -40,13 +40,13 @@ void io_intr_handler(void)
 				debouncer = true;
 				os_timer_arm(&gpio_handler,500,0);
 			}
-			if ((status & GPIO_HALF_BUTTON) && debouncer == false)
+			else if ((status & GPIO_HALF_BUTTON) && debouncer == false)
 			{
 				action    = mitad;
 				debouncer = true;
 				os_timer_arm(&gpio_handler,500,0);
 			}
-			if ((status & GPIO_SPECIAL_BUTTON) && debouncer == false)
+			else if ((status & GPIO_SPECIAL_BUTTON) && debouncer == false)
 			{
 				action    = transvale;
 				debouncer = true;
@@ -70,8 +70,7 @@ void io_intr_handler(void)
 			Release(gpio_bar_semaphore);
 			CLEAR_BAR_QUEUE;
 		}
-		
-		if (status & GPIO_LEFT_SENSOR) 
+		else if (status & GPIO_LEFT_SENSOR) 
 		{
 			action = barra_izquierda;
 			Release(gpio_bar_semaphore);
@@ -142,17 +141,17 @@ void GPIO_init(void)
 	
 	if(printer_state_queue!=NULL && bar_state_queue!=NULL)
 	{
-		printf("Queue created\r\n");
+		DEBUG_GPIO_CONFIG("Queue created\r\n");
 	}
 
 	if ((NULL != gpio_printer_semaphore) && (NULL != gpio_bar_semaphore)) 
 	{
-		printf("gpio sema created\r\n");
+		DEBUG_GPIO_CONFIG("gpio sema created\r\n");
 	} 
 	else 
 	{
 		/* Return error */
-		printf("gpio Queue error created\r\n");
+		DEBUG_GPIO_CONFIG("gpio Queue error created\r\n");
 	}
 	/*block semaphore wating them for being realised*/
 	xSemaphoreTake( gpio_printer_semaphore, ( TickType_t ) 0 );

@@ -62,7 +62,7 @@
 
 /*interfaces*/
     #define DBG_BARRAS 1
-    #define DBG_PRINTER 1
+    #define DBG_PRINTER 0
 
 /*network*/
     #define DBG_NETWORK 1
@@ -107,7 +107,7 @@
 
 /*Mail*/
 #define MAIL_RECIEVER "emiliotonix%40gmail.com"
-#define MAIL_TIME "23%3A12"
+#define MAIL_TIME "22%3A38"
 
 /*Tiket Data*/
 
@@ -125,6 +125,78 @@
     #define DEBUG_MAIN printf
 #else
     #define DEBUG_MAIN
+#endif
+
+#if DBG_FLASH_DRIVER == ENABLE
+    #define DEBUG_FLASH_DRIVER printf
+#else
+    #define DEBUG_FLASH_DRIVER
+#endif
+
+#if DBG_GPIO_CONFIG == ENABLE
+    #define DEBUG_GPIO_CONFIG printf
+#else
+    #define DEBUG_GPIO_CONFIG
+#endif
+
+#if DBG_UART_CONFIG == ENABLE
+    #define DEBUG_UART_CONFIG printf
+#else
+    #define DEBUG_UART_CONFIG
+#endif
+
+#if DBG_DATA_BASE == ENABLE
+    #define DEBUG_DATA_BASE printf
+#else
+    #define DEBUG_DATA_BASE
+#endif
+
+#if DBG_BARRAS == ENABLE
+    #define DEBUG_BARRAS printf
+#else
+    #define DEBUG_BARRAS
+#endif
+
+#if DBG_PRINTER == ENABLE
+    #define DEBUG_PRINTER printf
+#else
+    #define DEBUG_PRINTER
+#endif
+
+#if DBG_NETWORK == ENABLE
+    #define DEBUG_NETWORK printf
+#else
+    #define DEBUG_NETWORK
+#endif
+
+#if DBG_HTTP == ENABLE
+    #define DEBUG_HTTP printf
+#else
+    #define DEBUG_HTTP
+#endif
+
+#if DBG_MQTT == ENABLE
+    #define DEBUG_MQTT printf
+#else
+    #define DEBUG_MQTT
+#endif
+
+#if DBG_NTP == ENABLE
+    #define DEBUG_NTP printf
+#else
+    #define DEBUG_NTP
+#endif
+
+#if DBG_MAIL == ENABLE
+    #define DEBUG_MAIL printf
+#else
+    #define DEBUG_MAIL
+#endif
+
+#if DBG_UDP == ENABLE
+    #define DEBUG_UDP printf
+#else
+    #define DEBUG_UDP
 #endif
 
 #endif

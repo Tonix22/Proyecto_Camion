@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>	
 #include "../application_drivers/Flash_driver.h"
+#include "../include/user_config.h"
 
 SemaphoreHandle_t Provising = NULL;
 //#define DEBUG
@@ -49,9 +50,9 @@ http_server_netconn_serve(struct netconn *conn)
         buf[4]=='/' ) 
       {
         #ifdef DEBUG
-        printf("*******************\r\n");
-        printf("Data: %s\r\n",buf );
-        printf("*******************\r\n");
+        DEBUG_HTTP("*******************\r\n");
+        DEBUG_HTTP("Data: %s\r\n",buf );
+        DEBUG_HTTP("*******************\r\n");
         #endif
       /*This code tokenize the Http data*/
         if (
@@ -160,7 +161,7 @@ void http_paser(char *buf)
 	RAW_data = strtok(buf,"?");
 	RAW_data = strtok(NULL," ");
 	RAW_data_len = strlen(RAW_data);
-  printf("RAW_DATA: %s\r\n",RAW_data);
+  DEBUG_HTTP("RAW_DATA: %s\r\n",RAW_data);
 	memset(string_parsed,0,sizeof(string_parsed));
 	do
 	{
@@ -169,8 +170,8 @@ void http_paser(char *buf)
 	        read_begin = true;
 	        read_end = false;
 	        RAW_data_index++;
-	        printf("\r\n");
-	        printf("equal detected\r\n");
+	        DEBUG_HTTP("\r\n");
+	        DEBUG_HTTP("equal detected\r\n");
 	    }
         if(RAW_data[ RAW_data_index ]=='&' || RAW_data_index == ( RAW_data_len-1))
         {
@@ -180,7 +181,7 @@ void http_paser(char *buf)
               string_parsed[parsed_index] = RAW_data [RAW_data_index];
             }
             read_end=true;
-            printf("%s\r\n",string_parsed);
+            DEBUG_HTTP("%s\r\n",string_parsed);
             
             Flash_set[callback_index](string_parsed);
             

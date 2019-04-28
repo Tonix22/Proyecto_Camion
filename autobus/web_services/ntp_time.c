@@ -9,6 +9,7 @@
 #include "../database/data_base.h"
 #include "user_config.h"
 #include "uart.h"
+#include "../include/user_config.h"
 
 #define TIME_COMMAND_QUEUE_SIZE 1U
 #define SNTP_DISCONNECT 0
@@ -61,12 +62,12 @@ void Time_check (void *pvParameters)
 	
 	if (NULL != time_state_queue) 
 	{
-		printf("ntp Queue created\r\n");
+		DEBUG_NTP("ntp Queue created\r\n");
 	} 
 	else 
 	{
 		/* Return error */
-		printf("ntp Queue error created\r\n");
+		DEBUG_NTP("ntp Queue error created\r\n");
 	}
 	do
 	{
@@ -101,7 +102,7 @@ void Time_check (void *pvParameters)
 			if(Command_check == TEN_SEC) // each 10 seconds
 			{	
 				time_string = gmtime(&time_set);
-				printf("TIME %d:%d:%d\r\n",time_string->tm_hour,time_string->tm_min,time_string->tm_sec);
+				DEBUG_NTP("TIME %d:%d:%d\r\n",time_string->tm_hour,time_string->tm_min,time_string->tm_sec);
 				Command_check = 0;
 				if(time_string->tm_hour==Mail_Hour && time_string->tm_min==Mail_Min && time_to_send==false )
 				{
@@ -138,7 +139,7 @@ void set_mail_time(FlashData* Setup_time)
 	char *mail_alarm = Setup_time->EMAIL_TIME;
 	Mail_Hour = (mail_alarm[0]-0x30)*10 + (mail_alarm[1]-0x30);
 	Mail_Min  = (mail_alarm[5]-0x30)*10 + (mail_alarm[6]-0x30);
-	printf("Mail Alarm: %d:%d\r\n",Mail_Hour,Mail_Min);
+	DEBUG_NTP("Mail Alarm: %d:%d\r\n",Mail_Hour,Mail_Min);
 }
 static void Summer_winter_time(struct tm * time_temp)
 {
@@ -175,7 +176,7 @@ static void Summer_winter_time(struct tm * time_temp)
 		{
 			sntp_init();
 		}
-		printf("winter time\r\n");
+		DEBUG_NTP("winter time\r\n");
 	}
 	else
 	{
@@ -183,6 +184,6 @@ static void Summer_winter_time(struct tm * time_temp)
 		{
 			sntp_init();
 		}
-		printf("summer time\r\n");
+		DEBUG_NTP("summer time\r\n");
 	}
 }

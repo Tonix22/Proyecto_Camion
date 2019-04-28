@@ -6,6 +6,7 @@
 #include "udp_client.h"
 #include "../interfaces/barras.h"
 #include "freeRTOS_wrapper.h"
+#include "../include/user_config.h"
 
 extern QueueHandle_t Back_Bar;
 extern SemaphoreHandle_t Clear_back_bar_server;
@@ -18,9 +19,9 @@ void UdpRecvCb(void *arg, char *pdata, unsigned short len)
     struct espconn* udp_server_local = arg;
     #ifdef DEBUG
     DBG_LINES("UDP_RECV_CB");
-    printf("%s\n",pdata);
+    DEBUG_UDP("%s\n",pdata);
     DBG_LINES("END");
-    printf("\n");
+    DEBUG_UDP("\n");
     #endif
     if(pdata[0]=='U' && pdata[1]=='P')
     {
