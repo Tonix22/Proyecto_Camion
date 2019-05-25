@@ -4,7 +4,7 @@ How to start:
   https://drive.google.com/file/d/1RvD7j093OarMNrSTcXQ5zKDy-XTgFVuy/view?usp=sharing
 
 Lubuntu link:
-  https://drive.google.com/file/d/1IiBPW1VI03gS9opMMZv_B6oXaBja53xI/view?usp=sharing
+  https://drive.google.com/file/d/1IUcwQMMozoiYh4vhLy_iwbzmVj-vMFqK/view?usp=sharing
 
 Flash setup
   esptool.py
