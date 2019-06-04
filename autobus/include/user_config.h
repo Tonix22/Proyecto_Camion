@@ -36,49 +36,49 @@
 /****************
  ******MAIN****** 
  ****************/
-#define SETUP_EN 0
+#define FTS_EN                  (0)
 /*FIRST TIME SET UP ENABLE*/
 
-#if SETUP_EN == ENABLE
+#if FTS_EN == ENABLE
     #define FIRST_TIME_SETUP
 #endif
 /*MAX CONNECT TRYS*/
-#define MAX_CONNECT_TRIES 5
+#define MAX_CONNECT_TRIES       (5)
+
+#define SYSTEM_ERRASED         (0XFF)
 
 /****************
     DEBUG LEVELS 
  ****************/
 
 /*MAIN*/
-    #define DGB_MAIN 1
-
+    #define DGB_MAIN            (1)
 /*APPS drivers*/
-    #define DBG_FLASH_DRIVER 1
-    #define DBG_GPIO_CONFIG 1
-    #define DBG_UART_CONFIG 1
-
+    #define DBG_FLASH_DRIVER    (1)
+    #define DBG_GPIO_CONFIG     (1)
+    #define DBG_UART_CONFIG     (1)
 /*data base*/
-    #define DBG_DATA_BASE 1
-
+    #define DBG_DATA_BASE       (1)
 /*interfaces*/
-    #define DBG_BARRAS 1
-    #define DBG_PRINTER 0
-
+    #define DBG_BARRAS          (1)
+    #define DBG_PRINTER         (0)
 /*network*/
-    #define DBG_NETWORK 1
-
+    #define DBG_NETWORK         (1)
 /*web services*/
-    #define DBG_HTTP 1
-    #define DBG_MQTT 1
-    #define DBG_NTP 1
-    #define DBG_MAIL 1
-    #define DBG_UDP 1
+    #define DBG_HTTP            (1)
+    #define DBG_MQTT            (1)
+    #define DBG_NTP             (1)
+    #define DBG_MAIL            (1)
+    #define DBG_UDP             (1)
 /****************
     GPIOS
  ****************/
+#define LED_RED    RGB_LED(1,0,0);
+#define LED_YELLOW RGB_LED(1,1,0);
+#define LED_GREEN  RGB_LED(0,1,0);
 
-#define GPIO_SPECIAL_BUTTON GPIO_Pin_5 
-#define GPIO_HALF_BUTTON GPIO_Pin_4
+#define GPIO_SPECIAL_BUTTON  GPIO_Pin_5 
+#define GPIO_HALF_BUTTON     GPIO_Pin_4
 #define GPIO_COMPLETE_BUTTON GPIO_Pin_0
 
 /*sensors*/
@@ -89,9 +89,9 @@
 #define GPIO_LEFT_SENSOR GPIO_Pin_12
 
 /*RGB LED*/
-#define GPIO_RED_LED GPIO_Pin_13
-#define GPIO_GREEN_LED GPIO_Pin_14
-#define GPIO_BLUE_LED GPIO_Pin_15
+#define GPIO_RED_LED    GPIO_Pin_13
+#define GPIO_GREEN_LED  GPIO_Pin_14
+#define GPIO_BLUE_LED   GPIO_Pin_15
 
 /*DELAY MACRO*/
 #define milli_sec(milis) milis/portTICK_RATE_MS

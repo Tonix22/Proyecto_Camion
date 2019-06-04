@@ -147,9 +147,12 @@ void conn_AP_Init(uint8_t flash_state)
 *******************************************************************************/
 void wifi_init(FlashData* Conection_data)
 {
-    char* ssid_parse = Conection_data->SSID_DATA ;
+    char* ssid_parse = Conection_data->SSID_DATA;
+    printf("assign var\r\n");
+
     SSID_space_parse(ssid_parse);
-    
+
+    printf("ssid parse\r\n");
     /*Wifi configuration mode as station and acces point*/
     wifi_set_opmode(STATIONAP_MODE);
 

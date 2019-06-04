@@ -31,20 +31,14 @@
 #include "../interfaces/printer.h"
 #include "../interfaces/barras.h"
 #include "../network_config/network.h"
-#include "../web_services/http_server.h"
-#include "../application_drivers/Flash_driver.h"
-#include "../web_services/Tcp_mail.h"
 #include "../custom_logic/common_logic.h"
+#include "../application_drivers/Provisioning.h"
 
-#define LED_RED RGB_LED(1,0,0);
-#define LED_YELLOW RGB_LED(1,1,0);
-#define LED_GREEN RGB_LED(0,1,0);
+
 extern bool network_sucess;
 extern SemaphoreHandle_t Provising;
 extern SemaphoreHandle_t ip_connect;
-SemaphoreHandle_t Flash_Ready;
-QueueHandle_t Flash_Flag;
-FlashData* Configuration;
+extern QueueHandle_t     Flash_Flag;
 /******************************************************************************
  * FunctionName : user_rf_cal_sector_set
  * Description  : SDK just reversed 4 sectors, used for rf init data and paramters.
@@ -96,67 +90,7 @@ uint32 user_rf_cal_sector_set(void)
 
     return rf_cal_sec;
 }
-void provisioning(void)
-{
-    http_server_netconn_init();
-    /*Wait semaphore to finish provising task*/
-    while(xSemaphoreTake( Provising, ( TickType_t ) 10000/portTICK_RATE_MS ) == pdFALSE);
-    /*Task is deleted after provising*/
-}
-void Flash_thread(void* pvParameters)
-{
-    bool provising = false;
-    /*Flash pointers setup*/
-    Flash_init();
-    Configuration = Flash_read();
-    DEBUG_MAIN("Flash data: Configuration->Saved: %d\r\n",Configuration->Saved);
-    /*
-        Check if data had been written before,
-        if the answer is True Flash data 
-        is ready to be used, else
-        set up html provising mode
-    */
-    xSemaphoreGive(Flash_Ready);
-    xQueueSend(Flash_Flag, ( void * )&(Configuration->Saved),( portTickType ) 10);
 
-    if(0xFF == Configuration->Saved )
-    {
-        provising = true;
-        /******************************************************************************
-        * FunctionName : http_server_netconn_init
-        * Description  : Request wifi and printer data and save it into flash
-        * HTTP page
-        * Flash save system
-        *******************************************************************************/
-        DEBUG_MAIN("provising data\r\n");
-        LED_YELLOW;
-
-        /*save date gotten from html request page*/
-        provisioning();
-
-        /*read flash again*/
-        Configuration = Flash_read();
-    }
-
-    /******************************************************************************
-     * FunctionName : printer_init
-     * Description  : Initialize UART1, and create printer task
-     * NTP_Request-->Semaphore 
-     *******************************************************************************/
-    DEBUG_MAIN("configuration setup begin..\r\n");
-	printer_init(Configuration);
-    email_setup(Configuration);
-    set_mail_time(Configuration);
-    DEBUG_MAIN("configuration setup end..\r\n");
-
-    if(provising == true)
-    {
-        //update finished
-        system_restart();
-    }
-    
-    vTaskDelete(NULL);
-}
 void services_thread(void* pvParameters)
 {
     bool NET_START = TRUE;
@@ -182,7 +116,7 @@ void services_thread(void* pvParameters)
          LED_GREEN;
     }
 
-    while(try<MAX_CONNECT_TRIES && NET_START == TRUE)
+    while(try < MAX_CONNECT_TRIES && NET_START == TRUE)
     {
         if(network_sucess == TRUE)
         {
@@ -238,10 +172,10 @@ void services_thread(void* pvParameters)
  void user_init(void)
 {
    
-    uint8_t system_ready;
+    uint8_t Flash_state;
+    FlashData* Flash_data_configuration;
     //disable software watchdog
     //system_soft_wdt_feed();
-
     //Change BaudRate to 9600
     uart_user_init();
     DEBUG_MAIN("User init\n");
@@ -262,19 +196,14 @@ void services_thread(void* pvParameters)
     
     #ifdef FIRST_TIME_SETUP
 
-    vTaskDelay(500/portTICK_RATE_MS);
-
-    Flash_Ready = xSemaphoreCreateMutex();
-    Flash_Flag = xQueueCreate(1,sizeof(uint8_t));
-    xSemaphoreTake(Flash_Ready,( TickType_t ) 0);
-
-    xTaskCreate(Flash_thread,"Flash_thread",2048,NULL,4,NULL);
-    DEBUG_MAIN("Acces Point init\n");
-    while(xSemaphoreTake(Flash_Ready,( TickType_t ) milli_sec(100)) == pdFALSE );
-    vTaskDelay(milli_sec(10));
-    xQueueReceive(Flash_Flag, &(system_ready), ( TickType_t ) 20);
-
-    if(0xFF == system_ready)
+    Provisioning_init();
+    xQueueReceive(Flash_Flag, &(Flash_data_configuration), ( TickType_t ) 20);
+    /*  if system is errased put a local wifi
+        network to make the first time setup
+    */
+    Flash_state = Flash_data_configuration->Saved;
+    DEBUG_MAIN("Flash data MAIN: Configuration->Saved: %d\r\n",Flash_data_configuration->Saved);
+    if(SYSTEM_ERRASED == Flash_state)
     {
         /*
         Acces point configuration setup
@@ -282,27 +211,14 @@ void services_thread(void* pvParameters)
             NAME:central_comunication
             Pass:12345678
         */
-        conn_AP_Init(system_ready);
+        conn_AP_Init(Flash_state);
     }
     else
     {
         /*Preloaded data avoid first time setup*/
         #else
-        char MITAD_PRECIO[8];
-        Configuration = (FlashData*) malloc(sizeof(FlashData));
-        strcpy(Configuration->SSID_DATA,  WIFI_SSID);
-        strcpy(Configuration->PASS_DATA,  WIFI_PASS);
-        strcpy(Configuration->RUTA_DATA,  ROUTE);
-        strcpy(Configuration->UNIDAD_DATA,BUS_ID);
-        strcpy(Configuration->COSTO_DATA, NORMAL_TICKET);
-        strcpy(Configuration->EMAIL_DATA, MAIL_RECIEVER);
-        strcpy(Configuration->EMAIL_TIME, MAIL_TIME);
-
-        DEBUG_MAIN("configuration setup begin..\r\n");
-        printer_init(Configuration);
-        email_setup(Configuration);
-        set_mail_time(Configuration);
-        DEBUG_MAIN("configuration setup end..\r\n");
+            Flash_data_configuration = (FlashData*) malloc(sizeof(FlashData));
+            Avoid_Provisioning(Flash_data_configuration);
         #endif
         vTaskDelay(milli_sec(100));
         /******************************************************************************
@@ -318,7 +234,7 @@ void services_thread(void* pvParameters)
          * Description  : gets the data given by flash, and connects to acces point
          * 
          *******************************************************************************/
-        wifi_init(Configuration);
+        wifi_init(Flash_data_configuration);
 
     #ifdef FIRST_TIME_SETUP
     }
