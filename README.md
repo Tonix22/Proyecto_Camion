@@ -1,27 +1,30 @@
-# Proyecto_Camion
-bus project
-How to start:
+# Bustech
+
+##Espressif Start Guide:
   https://drive.google.com/file/d/1RvD7j093OarMNrSTcXQ5zKDy-XTgFVuy/view?usp=sharing
 
-Lubuntu link:
+##Lubuntu link:
+  This is an .ova file and it was saved on virtual box. To used it correctly intall
+  vitual box guest aditions.
   https://drive.google.com/file/d/1IUcwQMMozoiYh4vhLy_iwbzmVj-vMFqK/view?usp=sharing
 
-Flash setup
-  esptool.py
-
-Main Folder For working there
+##RTOS SDK Folder
   https://drive.google.com/drive/folders/1v_t7_RB9f1m5O2nrJXazsrjHLy7q6xAi?usp=sharing
+  
+##Tools
+For flash esp8266 in linux we used esptool.py
+  esptool.py}
+Socket Test 3
+  This tool can emulate TCP or UDP servers, usefull for testing purposes.
+  
+##Notes
+In **examples folder** delete all folder and clone there the repo. 
+Some **script** files could fail because **\r\n** just rewrite with\n
 
-Note: Some files could fail because \r\n just rewrite with\n
+#Pending stuff
 
-##Pending stuff
-  0. Make barras config parameter more modular, make a config.h
-     here put set data as SSID, PASS, MQTT server, time to send email,
-     GPIOS defs, RUTA, Ticket price, email sender and reciever, ntp server , etc..
-     
-  1. Check why barras traseras is not counting obstruction. 
-  2. Make an integral validation between barras traseras and delanteras.
-  3. MQTT features
-     a)Update an MQTT button to make a FOTA
-  4. Flow diagram of logic of system
-
+- [ ] Check barras traseras is working well and refactor it.
+- [ ] Integral validation between barras traseras and front system
+- [ ] Integrate FOTA
+- [ ] Make documentation and flow diagrams
+- [ ] Integrate web segmente GET/POST for printer update
