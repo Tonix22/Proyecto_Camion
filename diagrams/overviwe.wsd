@@ -1,0 +1,14 @@
+@startuml
+
+actor User
+
+== First Time Setup ==
+Esp8266 -> User : Access point local wifi signal
+User -> Esp8266 : Conects to wifi
+Esp8266 -> User : Html formulary
+User -> Esp8266 : Fill printer and wifi data
+Esp8266 -> Server : Send Data to data base
+Server->Server    : generate Random key
+Server-> User     : get email and send confirmation with web link and key
+User->Server : Log in to see data
+@enduml
