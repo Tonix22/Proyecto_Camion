@@ -23,6 +23,7 @@ Some **script** files could fail because **\r\n** just rewrite with\n
 
 #Pending stuff
 
+- [ ] Add ADC and battery coin to save data when system is turn off. 
 - [ ] Check barras traseras is working well and refactor it.
 - [ ] Integral validation between barras traseras and front system
 - [ ] Integrate FOTA
