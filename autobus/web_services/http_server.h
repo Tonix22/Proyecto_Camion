@@ -85,5 +85,5 @@ alinear_mail {\
 </div>\
 </body>\
 </html>\
-<html>"
+<html> \0"
 #endif

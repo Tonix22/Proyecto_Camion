@@ -184,7 +184,6 @@ void services_thread(void* pvParameters)
      * Description  : GPIOS are divided in Bars and printers
      * GPIO 12, 10 --> BARS [DER,IZQ]
      * GPIO 0,4,5  -->[NORMAL,MITAD,TRANSVALE]
-     * TODO : Add reset data button and config state
      *******************************************************************************/
     GPIO_init();
     /*

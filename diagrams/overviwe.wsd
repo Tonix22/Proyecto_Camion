@@ -2,7 +2,7 @@
 
 actor User
 
-== First Time Setup ==
+== First Time ==
 Esp8266 -> User : Access point local wifi signal
 User -> Esp8266 : Conects to wifi
 Esp8266 -> User : Html formulary

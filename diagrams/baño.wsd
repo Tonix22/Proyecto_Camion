@@ -1,0 +1,29 @@
+@startuml
+
+archimate #Technology "Server" as vpnServerA <<technology-device>>
+archimate #Technology Cloud  <<value>>
+
+rectangle JABON #lightgreen
+rectangle BAÑO #red
+rectangle QRCODE #orange
+rectangle AGUA #lightblue
+rectangle LUZ #lightyellow
+
+
+Sensor_de_Paso -right-> LUZ
+LUZ -right-> WIfi_Network
+
+MotorEncoder -up-> AGUA
+AGUA -up-> WIfi_Network
+
+Sensor_de_Presion -up-> JABON
+JABON -up-> WIfi_Network
+
+Swtich_en_puerta -up-> BAÑO
+BAÑO -up-> WIfi_Network
+
+
+QRCODE -down->> WIfi_Network
+WIfi_Network -right->> vpnServerA
+
+@enduml
