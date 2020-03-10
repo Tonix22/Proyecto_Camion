@@ -1,5 +1,4 @@
 #!/bin/bash
-
 :<<!
 ******NOTICE******
 MUST set SDK_PATH & BIN_PATH firstly!!!
@@ -8,8 +7,8 @@ export SDK_PATH=~/esp_iot_sdk_freertos
 export BIN_PATH=~/esp8266_bin
 !
 
-export SDK_PATH=~/Share/meine_Tests/ESP8266_RTOS_SDK-2.0.0
-export BIN_PATH=~/Share/meine_Tests/ESP8266_RTOS_SDK-2.0.0/bin
+export SDK_PATH=~/Share/ESP8266_RTOS_SDK-2.0.0
+export BIN_PATH=~/Share/ESP8266_RTOS_SDK-2.0.0/bin
 
 echo "gen_misc.sh version 20150911"
 echo ""
