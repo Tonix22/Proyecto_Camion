@@ -1,31 +1,65 @@
-# Bustech
+# Bustech a proyect with ESP8266
 
-##Espressif Start Guide:
-  https://drive.google.com/file/d/1RvD7j093OarMNrSTcXQ5zKDy-XTgFVuy/view?usp=sharing
+For making work this repo follow the steps
 
-##Lubuntu link:
-  This is an .ova file and it was saved on virtual box. To used it correctly intall
-  vitual box guest aditions.
-  https://drive.google.com/file/d/1IUcwQMMozoiYh4vhLy_iwbzmVj-vMFqK/view?usp=sharing
+1. Install Lubuntu OVA file in virutal box 6 or higher with gest aditions. [Virtual Machine](https://drive.google.com/file/d/1IUcwQMMozoiYh4vhLy_iwbzmVj-vMFqK/view?usp=sharing)
 
-##RTOS SDK Folder
-  https://drive.google.com/drive/folders/1v_t7_RB9f1m5O2nrJXazsrjHLy7q6xAi?usp=sharing
-  
-##Tools
-For flash esp8266 in linux we used esptool.py
-  esptool.py}
-Socket Test 3
+
+2. Download [RTOS_SDK_folder](https://drive.google.com/drive/folders/1v_t7_RB9f1m5O2nrJXazsrjHLy7q6xAi?usp=sharing)
+
+3. Go to linux home and link a sync folder, this one is called Share. It will be usefull for sync folders in your Host OS.
+```console
+esp8266@esp8266-VirtualBox:~$ ./mount.sh
+esp8266@esp8266-VirtualBox:~$ cd Share
+esp8266@esp8266-VirtualBox:~/Share$ 
+```
+4. Copy the RTOS_SDK_folder inside Share. You can do this in the HOST OS with the shared folder.
+```console
+esp8266@esp8266-VirtualBox:~/Share/ESP8266_RTOS_SDK-2.0.0$
+```
+The directory should look like this.
+
+```
+ESP8266_RTOS_SDK-2.0.0/
+  ├── bin/
+  ├── documents
+  ├── driver_lib
+  ├── examples
+  |── extra_include
+  |── include
+  ├── ld
+  ├── lib
+  ├── third_party
+```
+5. Clone repo in this folder
+6. Go to  ESP8266_RTOS_SDK-2.0.0/Proyecto_Camion/project_template and compile your first proyect. 
+```console
+esp8266@esp8266-VirtualBox:~/Share/ESP8266_RTOS_SDK-2.0.0/Proyecto_Camion/project_template$ ./gen_misc.sh
+```
+
+## Flash
+For flash esp8266 in linux we used esptool.
+1. Check that your usb is detected (ls usb)
+2. Run the following script 
+
+```console
+esp8266@esp8266-VirtualBox:~/Share/ESP8266_RTOS_SDK-2.0.0/Proyecto_Camion/project_template$ ./setup.sh
+```
+
+## Tools
+
+
+b. **Socket Test 3**
   This tool can emulate TCP or UDP servers, usefull for testing purposes.
   
-##Notes
-In **examples folder** delete all folder and clone there the repo. 
-Some **script** files could fail because **\r\n** just rewrite with\n
+## Notes
+Some **script** files could fail for **\r\n** chars. To fix it just rewrite with\n
 
-#Pending stuff
+# Pending stuff
 
 - [ ] Add ADC and battery coin to save data when system is turn off. 
-- [ ] Check barras traseras is working well and refactor it.
-- [ ] Integral validation between barras traseras and front system
+- [ ] Check that back bars are working well and refactor it.
+- [ ] Integral validation back bars traseras and front system
 - [ ] Integrate FOTA
 - [ ] Make documentation and flow diagrams
-- [ ] Integrate web segmente GET/POST for printer update
+- [ ] Integrate web Rest APIS GET/POST for printer updates.
